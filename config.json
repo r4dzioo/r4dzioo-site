@@ -1,0 +1,100 @@
+{
+  "site": {
+    "name": "radzio00",
+    "username": "@radzio00",
+    "description": "Twórca internetowy, gamer i pasjonat technologii.",
+    "avatar": "/avatar.svg",
+    "background": "/background.jpg"
+  },
+
+  "about": {
+    "title": "Witam Cię! Ja jestem radzio, a ty właśnie zawitałeś u mnie na stronie!",
+    "badges": ["Twórca internetowy", "Gaming", "Technologie"],
+    "description": "Tutaj wpiszę swój opis — coś o sobie, swojej pasji do gamingu i tworzenia treści."
+  },
+
+  "seo": {
+    "title": "radzio00 — Official Website",
+    "description": "Oficjalna strona radzio00. Twórca internetowy, gamer i pasjonat technologii.",
+    "image": "/og.png",
+    "url": "https://r4dzioo.pl"
+  },
+
+  "socials": {
+    "discord": {
+      "enabled": true,
+      "name": "Discord",
+      "username": "r4dzioo",
+      "url": "https://discord.gg/8hVKfh4mVu",
+      "description": "Dołącz do serwera Discord mojej gry na Roblox"
+    },
+    "youtube": {
+      "enabled": true,
+      "name": "YouTube",
+      "url": "https://youtube.com/@radzio00",
+      "description": "Subskrybuj mój kanał"
+    },
+    "github": {
+      "enabled": true,
+      "name": "GitHub",
+      "url": "https://github.com/r4dzioo",
+      "description": "Zobacz moje projekty"
+    }
+  },
+
+  "hero": {
+    "primaryButton": {
+      "label": "Discord",
+      "socialKey": "discord"
+    },
+    "secondaryButton": {
+      "label": "YouTube",
+      "socialKey": "youtube"
+    }
+  },
+
+  "minecraft": {
+    "enabled": false,
+    "serverName": "Mój serwer Minecraft! (ip nie podam)",
+    "address": "-",
+    "port": 25565,
+    "description": "Dołącz do mojego serwera Minecraft i graj razem ze społecznością!"
+  },
+
+  "links": [
+    {
+      "title": "Discord",
+      "description": "Dołącz do serwera Discord mojej gry na Roblox",
+      "url": "https://discord.gg/8hVKfh4mVu",
+      "icon": "discord",
+      "enabled": true
+    },
+    {
+      "title": "YouTube",
+      "description": "Moje filmy i materiały",
+      "url": "https://youtube.com/@radzio00",
+      "icon": "youtube",
+      "enabled": true
+    },
+    {
+      "title": "GitHub",
+      "description": "Moje projekty open-source",
+      "url": "https://github.com/r4dzioo",
+      "icon": "github",
+      "enabled": true
+    }
+  ],
+
+  "appearance": {
+    "theme": "dark",
+    "accentColor": "#8b5cf6",
+    "accentColorHex": "139, 92, 246",
+    "showBackground": false,
+    "animations": true
+  },
+
+  "footer": {
+    "text": "© 2026 Radzioo. Wszelkie prawa zastrzeżone.",
+    "showCredit": false
+  }
+}

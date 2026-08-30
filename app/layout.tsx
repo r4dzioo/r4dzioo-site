@@ -34,8 +34,8 @@ export const metadata: Metadata = {
     images: seo.image ? [seo.image] : [],
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: site.avatar,
+    apple: site.avatar,
   },
   robots: {
     index: true,

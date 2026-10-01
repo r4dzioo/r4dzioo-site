@@ -1,0 +1,44 @@
+{
+  "profile": {
+    "name": "radzio00",
+    "handle": "@radzio00",
+    "role": "Twórca internetowy / Roblox developer",
+    "bio": "Cześć! Jestem radzio. Nagrywam filmy z Robloxa, tworzę gry i eksperymentuję z technologią.",
+    "location": "Polska",
+    "status": "online"
+  },
+  "links": [
+    { "label": "Discord", "description": "Dołącz do mojego serwera", "url": "https://discord.gg/8hVKfh4mVu", "command": "join --discord" },
+    { "label": "YouTube", "description": "Moje filmy i materiały", "url": "https://youtube.com/@radzio00", "command": "watch --youtube" },
+    { "label": "GitHub", "description": "Projekty open-source", "url": "https://github.com/r4dzioo", "command": "explore --github" },
+    { "label": "Roblox", "description": "Gry, które tworzę", "url": "https://www.roblox.com/games/112919346551211/Project-Mazovia-South", "command": "play --roblox" }
+  ],
+  "news": [
+    { "date": "2026-09-28", "tag": "release", "title": "Nowa gra w drodze!", "body": "Pracuję nad nową grą Roblox! Więcej informacji na jej temat zdradzę wam wkrótce." },
+    { "date": "2026-09-30", "tag": "realese", "title": "Niedługo nowy update na Project Mazovia South!", "body": "Już niedługo zobaczycie nowy update na PMS!" },
+    { "date": "2026-10-01", "tag": "update", "title": "Strona dostała update!", "body": "Całkowity redesign strony, więcej funkji, więcej możliwości." }
+  ],
+  "stats": [
+    { "value": "24/7", "label": "online" },
+    { "value": "4", "label": "projekty" },
+    { "value": "∞", "label": "pomysłów" }
+  ],
+  "appearance": {
+    "defaultTheme": "green",
+    "defaultFont": "mono",
+    "showStats": true,
+    "showQuickLinks": true,
+    "footerVersion": "v1.0.0"
+  },
+  "themes": {
+    "green": { "label": "matrix", "accent": "#b8ff57", "dim": "#6b933e" },
+    "blue": { "label": "cyber", "accent": "#5ee7ff", "dim": "#347d8b" },
+    "purple": { "label": "synth", "accent": "#d5a6ff", "dim": "#805aa6" }
+  },
+  "fonts": {
+    "mono": { "label": "Courier Mono", "family": "Courier New, Courier, monospace" },
+    "console": { "label": "Lucida Console", "family": "Lucida Console, Monaco, monospace" },
+    "modern": { "label": "IBM Plex Mono", "family": "'IBM Plex Mono', 'Courier New', monospace" }
+  }
+}
+ 

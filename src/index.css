@@ -1,0 +1,257 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, monospace;
+
+  --radius-card: var(--card-radius);
+}
+
+:root {
+  --background: #131212;
+  --surface: #131212;
+  --surface-hover: #1b1b1b;
+  --border: #2e2e2e;
+  --text-primary: #f2f2f2;
+  --text-secondary: #b3b3b3;
+  --accent: #ffffff;
+  --accent-foreground: #131212;
+  --container-width: 1200px;
+  --card-radius: 12px;
+
+  --page-padding-base: 32px;
+  --section-spacing-base: 120px;
+  --page-padding: var(--page-padding-base);
+  --section-spacing: var(--section-spacing-base);
+  --nav-height: 72px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-padding: min(var(--page-padding-base), 20px);
+    --section-spacing: min(var(--section-spacing-base), 80px);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+  :root {
+    --section-spacing: min(var(--section-spacing-base), 96px);
+  }
+}
+
+@layer base {
+  html {
+    background: var(--background);
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-shadow: 0 0 16px rgb(255 255 255 / 0.2);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    text-wrap: balance;
+    text-shadow: 0 0 30px rgb(255 255 255 / 0.4);
+  }
+
+  /* The headline reveals through clipped wrappers, so its glow is a filter
+     on the heading itself; a text-shadow would be cut off by the clip. */
+  h1 {
+    text-shadow: none;
+    filter: drop-shadow(0 0 22px rgb(255 255 255 / 0.32));
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    text-shadow: none;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+@utility container-x {
+  width: 100%;
+  max-width: var(--container-width);
+  margin-inline: auto;
+  padding-inline: var(--page-padding);
+}
+
+@utility section-y {
+  padding-block: var(--section-spacing);
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--border) 50%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--border) 50%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 64px 64px;
+}
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* Film grain overlay */
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -1%); }
+  80% { transform: translate(3%, 3%); }
+}
+
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 150;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 1.2s steps(6) infinite;
+}
+
+/* Animated underline for text links */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Everything is black and white; project imagery warms up on hover */
+.mono-media {
+  filter: grayscale(1) contrast(1.05);
+  transition:
+    filter 0.6s ease,
+    transform 0.7s ease-out;
+}
+.group:hover .mono-media {
+  filter: grayscale(0) contrast(1);
+}
+
+/* Text selection and form autofill stay on-palette */
+input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  box-shadow: 0 0 0 1000px var(--surface) inset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    animation: none;
+  }
+}
+
+/* Expertise ticker */
+@keyframes ticker-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-track {
+  animation: ticker-scroll var(--ticker-duration, 48s) linear infinite;
+  will-change: transform;
+}
+
+/* The ticker draws its own bottom border; avoid doubling it. */
+section.ticker + section {
+  border-top-width: 0;
+}
+
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker[data-static='true'] .ticker-track {
+  animation: none;
+}
+
+.ticker[data-static='true'] {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ticker[data-static='true'] .ticker-copy[aria-hidden='true'] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+  .ticker {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ticker .ticker-copy[aria-hidden='true'] {
+    display: none;
+  }
+}

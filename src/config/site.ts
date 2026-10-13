@@ -19,7 +19,7 @@ export const projects: Project[] = [
     name: 'Project Mazovia South',
     description:
       'First bigger project I worked on.',
-    image: '/projects/mazovia-hero.png',
+    image: './projects/mazovia-hero.png',
     status: 'WIP',
     technologies: ['Roblox Studio', 'Roblox Map', 'Vechicles Imports'],
     responsibilities: ['Build map, do vechicles imports.'],
@@ -43,8 +43,8 @@ export const siteConfig: SiteConfig = {
     alias: 'radzio00', // EDIT ME: shown in the logo and footer
     title: 'Roblox Game Developer',
     // logoText: 'yourname',
-    logoImage: '/logo.svg',
-    avatar: '/avatar.jpg',
+    logoImage: './logo.svg',
+    avatar: './avatar.jpg',
   },
 
   // ── SEO / social sharing ───────────────────────────────────────────────────
@@ -60,7 +60,7 @@ export const siteConfig: SiteConfig = {
     ],
     // siteUrl: 'https://yourname.dev',
     // ogImage: '/og.png',
-    favicon: '/favicon.svg',
+    favicon: './favicon.svg',
     locale: 'en_US',
     // twitterHandle: '@yourname',
   },

@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────
-   r4dzioo portfolio — script.js
+   r4dzioo portfolio - script.js
    ───────────────────────────────────────────────── */
 
 /* ── STATUS BAR CLOCK ─────────────────────────── */
@@ -43,16 +43,13 @@
 })();
 
 
-/* ── VISIT COUNTER — Supabase ──────────────────── */
+/* ── VISIT COUNTER - Supabase ──────────────────── */
 (function initCounter() {
   const SUPABASE_URL = 'https://xhcnietczjdggwakqtip.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY25pZXRjempkZ2d3YWtxdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NzU2OTEsImV4cCI6MjEwODM1MTY5MX0.YeCJs2U0iE9MPII6tL5qdalhzxZAtjFU8DGKoIWIi38';
 
   const el     = document.getElementById('counter-val');
-<<<<<<< HEAD
   if (!el) return;
-=======
->>>>>>> f93a3ed284549c8bc93cb1d683ebd99f8436f0c8
   const LS_KEY = 'r4dzioo_counted';
   const TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -103,46 +100,42 @@
         body: JSON.stringify({ row_key: 'profile-views' }),
       }
     );
-<<<<<<< HEAD
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const val = await res.json();
-    // val is returned directly as BIGINT (a number)
-=======
-    if (!res.ok) throw new Error(res.status);
-    const val = await res.json();
->>>>>>> f93a3ed284549c8bc93cb1d683ebd99f8436f0c8
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error(`HTTP ${res.status}: ${errText}`);
+    }
+    const raw = await res.json();
+    // Supabase RPC zwraca BIGINT jako liczbe lub stringa — normalizujemy
+    const val = parseInt(raw, 10);
+    if (isNaN(val)) throw new Error('bad rpc response: ' + JSON.stringify(raw));
     localStorage.setItem(LS_KEY, String(Date.now()));
     return val;
   }
 
   (async () => {
     try {
-<<<<<<< HEAD
       let val;
       if (shouldIncrement()) {
         try {
           val = await incrementCount();
         } catch (rpcErr) {
-          // RPC failed — fallback to read-only
-          console.warn('increment_views RPC error, falling back to read:', rpcErr);
+          // RPC nie dziala - fallback do samego odczytu
+          console.warn('increment_views error, fallback:', rpcErr.message);
           val = await readCount();
         }
       } else {
         val = await readCount();
       }
-=======
-      const val = shouldIncrement() ? await incrementCount() : await readCount();
->>>>>>> f93a3ed284549c8bc93cb1d683ebd99f8436f0c8
       animateTo(val);
     } catch (err) {
-      console.warn('Supabase counter error:', err);
+      console.warn('Supabase counter error:', err.message);
       el.textContent = '----';
     }
   })();
 })();
 
 
-/* ── MATRIX RAIN — shared factory ─────────────── */
+/* ── MATRIX RAIN - shared factory ─────────────── */
 function createMatrixRain(canvas, options) {
   const ctx      = canvas.getContext('2d');
   const opts     = Object.assign({ opacity: 0.04, speed: 0.5, fontSize: 13 }, options);

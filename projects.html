@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>r4dzioo — projects</title>
+  <title>r4dzioo - projects</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -293,7 +293,7 @@ body::after {
 <div class="page">
   <div class="page-header">
     <h1 class="page-title"><span class="dim">~/</span>projects</h1>
-    <p class="page-sub">$ ls -la — changelog · status · showcase · roadmap</p>
+    <p class="page-sub">$ ls -la - changelog · status · showcase · roadmap</p>
   </div>
 
   <!-- TABS -->
@@ -304,69 +304,26 @@ body::after {
     <button class="tab-btn" data-tab="roadmap">roadmap</button>
   </div>
 
-  <!-- ── CHANGELOG — ładowane z Supabase ── -->
+  <!-- ── CHANGELOG - ładowane z Supabase ── -->
   <div class="tab-panel active" id="tab-changelog">
     <div id="cl-container"><div class="loading">loading…</div></div>
   </div>
 
-  <!-- ── STATUS — ładowane z Supabase ── -->
+  <!-- ── STATUS - ładowane z Supabase ── -->
   <div class="tab-panel" id="tab-status">
     <div class="status-grid" id="status-container">
       <div class="loading">loading…</div>
     </div>
   </div>
 
-  <!-- ── SHOWCASE — statyczny ── -->
+  <!-- ── SHOWCASE - ładowane z Supabase ── -->
   <div class="tab-panel" id="tab-showcase">
-    <div class="showcase-grid">
-      <div class="sh-card">
-        <div class="sh-thumb">
-          <div class="sh-thumb-placeholder">
-            <div class="sh-thumb-icon">🗺</div>
-            <div class="sh-thumb-label">screenshot_01.jpg</div>
-          </div>
-        </div>
-        <div class="sh-meta">
-          <div class="sh-title">Czech Republic — Prague overview</div>
-          <div class="sh-desc">Aerial view of the blocked-out city centre. Old Town Square area.</div>
-          <div class="sh-tag-row"><span class="sh-tag">Czech Republic</span><span class="sh-tag">terrain</span></div>
-        </div>
-      </div>
-      <div class="sh-card">
-        <div class="sh-thumb">
-          <div class="sh-thumb-placeholder">
-            <div class="sh-thumb-icon">🛣</div>
-            <div class="sh-thumb-label">screenshot_02.jpg</div>
-          </div>
-        </div>
-        <div class="sh-meta">
-          <div class="sh-title">D1 motorway — early pass</div>
-          <div class="sh-desc">First segment of the D1 corridor. Road mesh and basic surface materials in place.</div>
-          <div class="sh-tag-row"><span class="sh-tag">Czech Republic</span><span class="sh-tag">roads</span></div>
-        </div>
-      </div>
-      <div class="sh-card">
-        <div class="sh-thumb">
-          <div class="sh-thumb-placeholder">
-            <div class="sh-thumb-icon">🚗</div>
-            <div class="sh-thumb-label">screenshot_03.jpg</div>
-          </div>
-        </div>
-        <div class="sh-meta">
-          <div class="sh-title">PMS — dispatch board</div>
-          <div class="sh-desc">Live unit tracking interface. Shows active, dispatched and unavailable units.</div>
-          <div class="sh-tag-row"><span class="sh-tag">PMS</span><span class="sh-tag">UI</span></div>
-        </div>
-      </div>
-      <div class="sh-add-hint">
-        <span style="font-size:20px;opacity:0.3">+</span>
-        drop screenshots here<br>
-        <span style="font-size:10px;margin-top:4px;opacity:0.5">replace placeholder divs with &lt;img&gt; tags</span>
-      </div>
+    <div class="showcase-grid" id="showcase-container">
+      <div class="loading">loading…</div>
     </div>
   </div>
 
-  <!-- ── ROADMAP — ładowane z Supabase ── -->
+  <!-- ── ROADMAP - ładowane z Supabase ── -->
   <div class="tab-panel" id="tab-roadmap">
     <div class="roadmap-cols" id="roadmap-container">
       <div class="loading">loading…</div>
@@ -575,10 +532,51 @@ async function loadRoadmap() {
     </div>`;
 }
 
+/* ── SHOWCASE ── */
+async function loadShowcase() {
+  const { data, error } = await db
+    .from('showcase').select('*')
+    .order('sort_order');
+
+  const container = document.getElementById('showcase-container');
+
+  if (error) {
+    container.innerHTML = `<div class="err">Błąd ładowania: ${esc(error.message)}</div>`;
+    return;
+  }
+  if (!data.length) {
+    container.innerHTML = '<div class="empty">brak zdjęć.</div>';
+    return;
+  }
+
+  container.innerHTML = data.map(item => {
+    const tags = Array.isArray(item.tags) && item.tags.length
+      ? `<div class="sh-tag-row">${item.tags.map(t => `<span class="sh-tag">${esc(t)}</span>`).join('')}</div>`
+      : '';
+
+    const thumb = item.image_url
+      ? `<img class="sh-img" src="${esc(item.image_url)}" alt="${esc(item.title)}" loading="lazy" />`
+      : `<div class="sh-thumb-placeholder">
+           <div class="sh-thumb-icon">🖼</div>
+           <div class="sh-thumb-label">${esc(item.title)}</div>
+         </div>`;
+
+    return `<div class="sh-card">
+      <div class="sh-thumb">${thumb}</div>
+      <div class="sh-meta">
+        <div class="sh-title">${esc(item.title)}</div>
+        ${item.description ? `<div class="sh-desc">${esc(item.description)}</div>` : ''}
+        ${tags}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 /* ── INIT ── */
 loadChangelog();
 loadStatus();
 loadRoadmap();
+loadShowcase();
 </script>
 </body>
 </html>

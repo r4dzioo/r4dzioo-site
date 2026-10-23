@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>r4dzioo — admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <style>
+    :root {
+      --bg:       #050400;
+      --bg2:      #0d0c08;
+      --bg3:      #141209;
+      --border:   #1e1c12;
+      --border2:  #2a2718;
+      --amber:    #cc7a00;
+      --amber-hi: #ffcf6a;
+      --fg:       #e8d5a3;
+      --fg-dim:   #888;
+      --fg-mute:  #444;
+      --green:    #4caf50;
+      --blue:     #2196f3;
+      --red:      #e53935;
+      --purple:   #9c27b0;
+      --orange:   #ff9800;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ── STATUS BAR ── */
+    .statusbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .3rem 1rem;
+      background: #0a0900;
+      border-bottom: 1px solid var(--border);
+      font-size: .72rem; color: var(--fg-dim);
+    }
+    .sb-bracket { color: var(--fg-mute); }
+    .sb-path    { color: var(--fg-dim); }
+    .sb-branch  { color: var(--amber); }
+    .sb-ok      { color: var(--green); }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem;
+    }
+    .login-box {
+      width: 100%; max-width: 360px;
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+    }
+    .login-titlebar {
+      display: flex; gap: .5rem; align-items: center;
+      padding: .5rem .75rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg3);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #ffbd2e; }
+    .dot-g { background: #28ca41; }
+    .login-title-text {
+      flex: 1; text-align: center; font-size: .7rem; color: var(--fg-dim);
+    }
+    .login-body { padding: 1.6rem; }
+    .login-prompt {
+      font-size: .75rem; color: var(--amber); margin-bottom: 1.2rem;
+    }
+    .login-prompt span { color: var(--fg-mute); }
+
+    label { display: block; font-size: .68rem; color: var(--fg-dim); margin-bottom: .3rem; }
+    input[type="email"], input[type="password"], input[type="text"],
+    input[type="date"], select, textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      color: var(--fg);
+      font-family: inherit;
+      font-size: .8rem;
+      padding: .45rem .6rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--amber); }
+    textarea { resize: vertical; min-height: 70px; }
+
+    .field { margin-bottom: .9rem; }
+
+    .btn {
+      display: inline-block;
+      padding: .4rem .9rem;
+      font-family: inherit;
+      font-size: .75rem;
+      cursor: pointer;
+      border: 1px solid;
+      background: none;
+      transition: all .15s;
+      letter-spacing: .04em;
+    }
+    .btn-primary   { border-color: var(--amber);  color: var(--amber-hi); }
+    .btn-primary:hover   { background: var(--amber); color: var(--bg); }
+    .btn-danger    { border-color: var(--red);    color: var(--red); }
+    .btn-danger:hover    { background: var(--red);   color: #fff; }
+    .btn-ghost     { border-color: var(--border2); color: var(--fg-dim); }
+    .btn-ghost:hover     { border-color: var(--fg-dim); color: var(--fg); }
+    .btn-sm { padding: .25rem .55rem; font-size: .68rem; }
+    .btn-full { width: 100%; text-align: center; }
+
+    .err-msg { color: var(--red);   font-size: .72rem; margin-top: .6rem; }
+    .ok-msg  { color: var(--green); font-size: .72rem; margin-top: .6rem; }
+
+    /* ── MAIN LAYOUT ── */
+    #app { display: none; padding-top: 2.4rem; min-height: 100vh; }
+
+    .top-bar {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      flex-wrap: wrap;
+    }
+    .top-bar-title { color: var(--amber-hi); font-size: .8rem; flex: 1; }
+    .top-user { font-size: .7rem; color: var(--fg-dim); }
+
+    /* ── NAV TABS ── */
+    .nav-tabs {
+      display: flex; gap: 0;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .nav-tab {
+      padding: .55rem 1.1rem;
+      font-family: inherit; font-size: .72rem;
+      background: none; border: none; border-right: 1px solid var(--border);
+      color: var(--fg-dim); cursor: pointer;
+      white-space: nowrap;
+      transition: color .12s, background .12s;
+    }
+    .nav-tab:hover   { background: var(--bg2); color: var(--fg); }
+    .nav-tab.active  { background: var(--bg3); color: var(--amber-hi); border-bottom: 2px solid var(--amber); }
+
+    /* ── CONTENT PANEL ── */
+    .content { padding: 1.2rem 1rem 3rem; max-width: 920px; }
+
+    /* ── SECTION HEADER ── */
+    .sec-hdr {
+      display: flex; align-items: center; gap: .8rem;
+      margin-bottom: 1rem;
+    }
+    .sec-hdr h2 { font-size: .8rem; color: var(--amber-hi); font-weight: 500; }
+    .count-badge {
+      font-size: .65rem; color: var(--fg-mute);
+      border: 1px solid var(--border2); padding: .1rem .4rem;
+    }
+
+    /* ── PROJECT FILTER ── */
+    .filter-bar {
+      display: flex; gap: .4rem; margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .filter-btn {
+      font-family: inherit; font-size: .68rem;
+      padding: .25rem .65rem; cursor: pointer;
+      background: none; border: 1px solid var(--border2);
+      color: var(--fg-dim); transition: all .12s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      border-color: var(--amber); color: var(--amber-hi);
+    }
+
+    /* ── TABLE ── */
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    .data-table th {
+      text-align: left; font-size: .65rem; color: var(--fg-mute);
+      letter-spacing: .08em; padding: .4rem .6rem;
+      border-bottom: 1px solid var(--border2);
+      font-weight: 400;
+    }
+    .data-table td {
+      padding: .45rem .6rem;
+      border-bottom: 1px solid var(--border);
+      font-size: .75rem; vertical-align: top;
+    }
+    .data-table tr:hover td { background: var(--bg2); }
+    .data-table .actions { display: flex; gap: .3rem; }
+
+    .tag-type {
+      font-size: .62rem; padding: .1rem .35rem;
+      border: 1px solid; display: inline-block;
+    }
+    .tag-feat   { border-color: var(--green);  color: var(--green); }
+    .tag-fix    { border-color: var(--blue);   color: var(--blue); }
+    .tag-wip    { border-color: var(--orange); color: var(--orange); }
+    .tag-init   { border-color: var(--purple); color: var(--purple); }
+    .tag-planned{ border-color: var(--fg-mute);color: var(--fg-mute); }
+    .tag-doing  { border-color: var(--amber);  color: var(--amber); }
+    .tag-done   { border-color: var(--green);  color: var(--green); }
+
+    .check-done { color: var(--green); }
+    .check-wip  { color: var(--amber-hi); }
+    .check-no   { color: var(--fg-mute); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.75); align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      width: 100%; max-width: 560px;
+      background: var(--bg2); border: 1px solid var(--border2);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-titlebar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .5rem .75rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg3);
+    }
+    .modal-title { font-size: .75rem; color: var(--amber-hi); }
+    .modal-close {
+      background: none; border: none; color: var(--fg-dim);
+      font-size: 1rem; cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--fg); }
+    .modal-body { padding: 1.2rem; }
+    .modal-footer {
+      display: flex; gap: .5rem; justify-content: flex-end;
+      padding: .8rem 1.2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    @media (max-width: 500px) { .row2 { grid-template-columns: 1fr; } }
+
+    .bullets-list { list-style: none; margin-bottom: .5rem; }
+    .bullet-row {
+      display: flex; gap: .4rem; margin-bottom: .3rem;
+    }
+    .bullet-row input { flex: 1; }
+
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 300;
+      background: var(--bg3); border: 1px solid var(--border2);
+      padding: .55rem 1rem; font-size: .75rem;
+      opacity: 0; transition: opacity .2s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .toast.ok   { border-color: var(--green);  color: var(--green); }
+    .toast.err  { border-color: var(--red);    color: var(--red); }
+
+    .empty-row td {
+      text-align: center; color: var(--fg-mute);
+      padding: 2rem; font-size: .75rem;
+    }
+
+    .sort-arrows { display: flex; flex-direction: column; gap: 1px; }
+    .sort-arrow {
+      background: none; border: none; cursor: pointer; font-size: .6rem;
+      color: var(--fg-mute); padding: 0; line-height: 1;
+    }
+    .sort-arrow:hover { color: var(--amber); }
+  </style>
+</head>
+<body>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <span class="sb-left">
+    <span class="sb-bracket">[</span>r4dzioo.pl<span class="sb-bracket">]</span>
+    <span class="sb-path"> ~/admin</span>
+    <span class="sb-git"> git:<span class="sb-branch">(main)</span> <span class="sb-ok">✓</span></span>
+  </span>
+  <span id="sb-time"></span>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-titlebar">
+      <span class="dot dot-r"></span>
+      <span class="dot dot-y"></span>
+      <span class="dot dot-g"></span>
+      <span class="login-title-text">r4dzioo@admin — bash</span>
+    </div>
+    <div class="login-body">
+      <p class="login-prompt"><span>$ </span>sudo login</p>
+      <div class="field">
+        <label>email</label>
+        <input type="email" id="login-email" placeholder="admin@example.com" autocomplete="email" />
+      </div>
+      <div class="field">
+        <label>password</label>
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn btn-primary btn-full" id="login-btn">→ sign in</button>
+      <div id="login-err" class="err-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="top-bar">
+    <span class="top-bar-title">r4dzioo <span style="color:var(--fg-mute)">/ admin panel</span></span>
+    <span class="top-user" id="top-user"></span>
+    <button class="btn btn-ghost btn-sm" id="logout-btn">logout</button>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="changelog">changelog</button>
+    <button class="nav-tab" data-tab="tasks">status.tasks</button>
+    <button class="nav-tab" data-tab="roadmap">roadmap</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ── CHANGELOG TAB ── -->
+    <div id="tab-changelog">
+      <div class="sec-hdr">
+        <h2>changelog</h2>
+        <span class="count-badge" id="cl-count">0 wpisów</span>
+        <button class="btn btn-primary btn-sm" id="cl-add-btn">+ dodaj wpis</button>
+      </div>
+      <div class="filter-bar" id="cl-filter"></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>data</th>
+            <th>projekt</th>
+            <th>typ</th>
+            <th>tytuł</th>
+            <th>opis</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="cl-body"><tr><td colspan="6" class="loading" style="padding:.8rem;color:var(--fg-mute);font-size:.75rem">ładowanie…</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- ── TASKS TAB ── -->
+    <div id="tab-tasks" style="display:none">
+      <div class="sec-hdr">
+        <h2>status.tasks</h2>
+        <span class="count-badge" id="task-count">0 tasków</span>
+        <button class="btn btn-primary btn-sm" id="task-add-btn">+ dodaj task</button>
+      </div>
+      <div class="filter-bar" id="task-filter"></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>projekt</th>
+            <th>tytuł</th>
+            <th>done</th>
+            <th>in progress</th>
+            <th>kolejność</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="task-body"></tbody>
+      </table>
+    </div>
+
+    <!-- ── ROADMAP TAB ── -->
+    <div id="tab-roadmap" style="display:none">
+      <div class="sec-hdr">
+        <h2>roadmap</h2>
+        <span class="count-badge" id="rm-count">0 etapów</span>
+        <button class="btn btn-primary btn-sm" id="rm-add-btn">+ dodaj etap</button>
+      </div>
+      <div class="filter-bar" id="rm-filter"></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>projekt</th>
+            <th>tytuł</th>
+            <th>stage</th>
+            <th>opis</th>
+            <th>kolejność</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rm-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- CHANGELOG MODAL -->
+<div class="modal-overlay" id="cl-modal">
+  <div class="modal">
+    <div class="modal-titlebar">
+      <span class="modal-title" id="cl-modal-title">nowy wpis</span>
+      <button class="modal-close" data-close="cl-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="row2">
+        <div class="field">
+          <label>data</label>
+          <input type="date" id="cl-date" />
+        </div>
+        <div class="field">
+          <label>typ</label>
+          <select id="cl-type">
+            <option value="feat">feat</option>
+            <option value="fix">fix</option>
+            <option value="wip">wip</option>
+            <option value="init">init</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>projekt</label>
+        <select id="cl-project">
+          <option value="PMS">PMS</option>
+          <option value="Project: Czech Republic">Project: Czech Republic</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>tytuł</label>
+        <input type="text" id="cl-title" placeholder="np. Dodano system kolei" />
+      </div>
+      <div class="field">
+        <label>opis</label>
+        <textarea id="cl-desc" placeholder="Szczegółowy opis zmian…"></textarea>
+      </div>
+      <div class="field">
+        <label>bullets (opcjonalnie)</label>
+        <ul class="bullets-list" id="bullets-list"></ul>
+        <button class="btn btn-ghost btn-sm" id="add-bullet-btn">+ bullet</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="cl-modal">anuluj</button>
+      <button class="btn btn-primary" id="cl-save-btn">zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-titlebar">
+      <span class="modal-title" id="task-modal-title">nowy task</span>
+      <button class="modal-close" data-close="task-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>projekt</label>
+        <select id="task-project">
+          <option value="PMS">PMS</option>
+          <option value="Project: Czech Republic">Project: Czech Republic</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>tytuł</label>
+        <input type="text" id="task-title" placeholder="np. Import pojazdów v2" />
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>done</label>
+          <select id="task-done">
+            <option value="false">nie</option>
+            <option value="true">tak</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>in progress</label>
+          <select id="task-inprogress">
+            <option value="false">nie</option>
+            <option value="true">tak</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>kolejność (sort_order)</label>
+        <input type="text" id="task-sort" placeholder="1" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="task-modal">anuluj</button>
+      <button class="btn btn-primary" id="task-save-btn">zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ROADMAP MODAL -->
+<div class="modal-overlay" id="rm-modal">
+  <div class="modal">
+    <div class="modal-titlebar">
+      <span class="modal-title" id="rm-modal-title">nowy etap</span>
+      <button class="modal-close" data-close="rm-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>projekt</label>
+        <select id="rm-project">
+          <option value="PMS">PMS</option>
+          <option value="Project: Czech Republic">Project: Czech Republic</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>tytuł</label>
+        <input type="text" id="rm-title" placeholder="np. Alpha release" />
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>stage</label>
+          <select id="rm-stage">
+            <option value="planned">planned</option>
+            <option value="doing">doing</option>
+            <option value="done">done</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>kolejność</label>
+          <input type="text" id="rm-sort" placeholder="1" />
+        </div>
+      </div>
+      <div class="field">
+        <label>opis</label>
+        <textarea id="rm-desc" placeholder="Opis etapu…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="rm-modal">anuluj</button>
+      <button class="btn btn-primary" id="rm-save-btn">zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="del-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-titlebar">
+      <span class="modal-title" style="color:var(--red)">potwierdź usunięcie</span>
+      <button class="modal-close" data-close="del-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.8rem;color:var(--fg-dim)">Tej operacji nie można cofnąć.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="del-modal">anuluj</button>
+      <button class="btn btn-danger" id="del-confirm-btn">usuń</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   r4dzioo admin panel — main script
+   ══════════════════════════════════════════════════ */
+
+// ── KONFIGURACJA ───────────────────────────────────
+const SUPABASE_URL = 'WKLEJ_TUTAJ_SUPABASE_URL';
+const SUPABASE_KEY = 'WKLEJ_TUTAJ_SUPABASE_ANON_KEY';
+// ──────────────────────────────────────────────────
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const PROJECTS = ['PMS', 'Project: Czech Republic'];
+
+// ── CLOCK ─────────────────────────────────────────
+(function() {
+  const el = document.getElementById('sb-time');
+  function tick() {
+    const now = new Date(), pad = n => String(n).padStart(2,'0');
+    const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    el.textContent = window.innerWidth <= 600
+      ? `[admin] ${pad(now.getHours())}:${pad(now.getMinutes())}`
+      : `${now.getDate()} ${M[now.getMonth()]} ${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+// ── TOAST ─────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ── ESC ───────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── MODAL HELPERS ─────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('[data-close]').forEach(btn => {
+  btn.addEventListener('click', () => closeModal(btn.dataset.close));
+});
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
+});
+
+// ── AUTH ───────────────────────────────────────────
+async function initAuth() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) showApp(session.user);
+}
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-err');
+  errEl.textContent = '';
+  const btn = document.getElementById('login-btn');
+  btn.textContent = '→ logowanie…'; btn.disabled = true;
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+  btn.textContent = '→ sign in'; btn.disabled = false;
+
+  if (error) { errEl.textContent = error.message; return; }
+  showApp(data.user);
+});
+
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await db.auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+});
+
+function showApp(user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('top-user').textContent = user.email;
+  loadChangelog(); loadTasks(); loadRoadmap();
+}
+
+// ── TABS ───────────────────────────────────────────
+const TABS = ['changelog','tasks','roadmap'];
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    TABS.forEach(t => {
+      document.getElementById(`tab-${t}`).style.display = t === btn.dataset.tab ? '' : 'none';
+    });
+  });
+});
+
+// ── FILTER BUILDER ─────────────────────────────────
+function buildFilter(containerId, onChange) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  ['Wszystkie', ...PROJECTS].forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = p;
+    btn.addEventListener('click', () => {
+      el.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(i === 0 ? null : p);
+    });
+    el.appendChild(btn);
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  CHANGELOG
+// ════════════════════════════════════════════════════
+let clData = [], clFilter = null, clEditId = null;
+
+buildFilter('cl-filter', f => { clFilter = f; renderChangelog(); });
+
+async function loadChangelog() {
+  const { data, error } = await db.from('changelog').select('*').order('date', { ascending: false });
+  if (error) { toast('Błąd ładowania changelog: ' + error.message, 'err'); return; }
+  clData = data;
+  renderChangelog();
+}
+
+function renderChangelog() {
+  const rows = clFilter ? clData.filter(r => r.project === clFilter) : clData;
+  document.getElementById('cl-count').textContent = `${rows.length} wpisów`;
+  const tbody = document.getElementById('cl-body');
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">brak wpisów — dodaj pierwszy</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const bullets = Array.isArray(r.bullets) ? r.bullets.join(', ') : '';
+    return `<tr>
+      <td>${esc(r.date)}</td>
+      <td style="color:var(--fg-dim)">${esc(r.project)}</td>
+      <td><span class="tag-type tag-${esc(r.type)}">${esc(r.type)}</span></td>
+      <td>${esc(r.title)}</td>
+      <td style="color:var(--fg-dim);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.description)}">${esc(r.description)}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="clEdit(${r.id})">edytuj</button>
+          <button class="btn btn-danger btn-sm" onclick="clDelete(${r.id})">usuń</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// Bullets
+let bulletCount = 0;
+function addBullet(value = '') {
+  const li = document.createElement('li');
+  li.className = 'bullet-row';
+  const id = `bullet-${bulletCount++}`;
+  li.innerHTML = `<input type="text" id="${id}" value="${esc(value)}" placeholder="bullet point…" />
+    <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('bullets-list').appendChild(li);
+}
+document.getElementById('add-bullet-btn').addEventListener('click', () => addBullet());
+
+function getBullets() {
+  return Array.from(document.querySelectorAll('#bullets-list .bullet-row input'))
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
+function clOpenModal(row = null) {
+  clEditId = row ? row.id : null;
+  document.getElementById('cl-modal-title').textContent = row ? 'edytuj wpis' : 'nowy wpis';
+  document.getElementById('cl-date').value    = row?.date    ?? new Date().toISOString().slice(0,10);
+  document.getElementById('cl-type').value    = row?.type    ?? 'feat';
+  document.getElementById('cl-project').value = row?.project ?? 'PMS';
+  document.getElementById('cl-title').value   = row?.title   ?? '';
+  document.getElementById('cl-desc').value    = row?.description ?? '';
+  document.getElementById('bullets-list').innerHTML = '';
+  bulletCount = 0;
+  if (Array.isArray(row?.bullets)) row.bullets.forEach(addBullet);
+  openModal('cl-modal');
+}
+
+window.clEdit = id => clOpenModal(clData.find(r => r.id === id));
+document.getElementById('cl-add-btn').addEventListener('click', () => clOpenModal());
+
+document.getElementById('cl-save-btn').addEventListener('click', async () => {
+  const payload = {
+    date:        document.getElementById('cl-date').value,
+    project:     document.getElementById('cl-project').value,
+    type:        document.getElementById('cl-type').value,
+    title:       document.getElementById('cl-title').value.trim(),
+    description: document.getElementById('cl-desc').value.trim(),
+    bullets:     getBullets(),
+  };
+  if (!payload.title || !payload.date) { toast('Wypełnij datę i tytuł', 'err'); return; }
+
+  const btn = document.getElementById('cl-save-btn');
+  btn.textContent = 'zapisywanie…'; btn.disabled = true;
+
+  let error;
+  if (clEditId) {
+    ({ error } = await db.from('changelog').update(payload).eq('id', clEditId));
+  } else {
+    ({ error } = await db.from('changelog').insert(payload));
+  }
+  btn.textContent = 'zapisz'; btn.disabled = false;
+
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast(clEditId ? 'Wpis zaktualizowany ✓' : 'Wpis dodany ✓');
+  closeModal('cl-modal');
+  loadChangelog();
+});
+
+window.clDelete = id => confirmDelete(async () => {
+  const { error } = await db.from('changelog').delete().eq('id', id);
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast('Wpis usunięty'); loadChangelog();
+});
+
+
+// ════════════════════════════════════════════════════
+//  STATUS TASKS
+// ════════════════════════════════════════════════════
+let taskData = [], taskFilter = null, taskEditId = null;
+
+buildFilter('task-filter', f => { taskFilter = f; renderTasks(); });
+
+async function loadTasks() {
+  const { data, error } = await db.from('status_tasks').select('*').order('sort_order');
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  taskData = data;
+  renderTasks();
+}
+
+function renderTasks() {
+  const rows = taskFilter ? taskData.filter(r => r.project === taskFilter) : taskData;
+  document.getElementById('task-count').textContent = `${rows.length} tasków`;
+  const tbody = document.getElementById('task-body');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">brak tasków</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const doneIcon = r.done ? `<span class="check-done">✓ done</span>`
+                  : r.in_progress ? `<span class="check-wip">◉ wip</span>`
+                  : `<span class="check-no">○</span>`;
+    return `<tr>
+      <td style="color:var(--fg-dim)">${esc(r.project)}</td>
+      <td>${esc(r.title)}</td>
+      <td>${r.done ? '<span class="check-done">✓</span>' : '<span class="check-no">○</span>'}</td>
+      <td>${r.in_progress ? '<span class="check-wip">◉</span>' : '<span class="check-no">○</span>'}</td>
+      <td style="color:var(--fg-mute)">${r.sort_order}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="taskEdit(${r.id})">edytuj</button>
+          <button class="btn btn-danger btn-sm" onclick="taskDelete(${r.id})">usuń</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function taskOpenModal(row = null) {
+  taskEditId = row ? row.id : null;
+  document.getElementById('task-modal-title').textContent = row ? 'edytuj task' : 'nowy task';
+  document.getElementById('task-project').value    = row?.project     ?? 'PMS';
+  document.getElementById('task-title').value      = row?.title       ?? '';
+  document.getElementById('task-done').value       = row?.done        ? 'true' : 'false';
+  document.getElementById('task-inprogress').value = row?.in_progress ? 'true' : 'false';
+  document.getElementById('task-sort').value       = row?.sort_order  ?? '';
+  openModal('task-modal');
+}
+
+window.taskEdit = id => taskOpenModal(taskData.find(r => r.id === id));
+document.getElementById('task-add-btn').addEventListener('click', () => taskOpenModal());
+
+document.getElementById('task-save-btn').addEventListener('click', async () => {
+  const title = document.getElementById('task-title').value.trim();
+  if (!title) { toast('Wpisz tytuł taska', 'err'); return; }
+  const payload = {
+    project:     document.getElementById('task-project').value,
+    title,
+    done:        document.getElementById('task-done').value === 'true',
+    in_progress: document.getElementById('task-inprogress').value === 'true',
+    sort_order:  parseInt(document.getElementById('task-sort').value || '0', 10),
+  };
+  const btn = document.getElementById('task-save-btn');
+  btn.textContent = 'zapisywanie…'; btn.disabled = true;
+  let error;
+  if (taskEditId) {
+    ({ error } = await db.from('status_tasks').update(payload).eq('id', taskEditId));
+  } else {
+    ({ error } = await db.from('status_tasks').insert(payload));
+  }
+  btn.textContent = 'zapisz'; btn.disabled = false;
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast(taskEditId ? 'Task zaktualizowany ✓' : 'Task dodany ✓');
+  closeModal('task-modal');
+  loadTasks();
+});
+
+window.taskDelete = id => confirmDelete(async () => {
+  const { error } = await db.from('status_tasks').delete().eq('id', id);
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast('Task usunięty'); loadTasks();
+});
+
+
+// ════════════════════════════════════════════════════
+//  ROADMAP
+// ════════════════════════════════════════════════════
+let rmData = [], rmFilter = null, rmEditId = null;
+
+buildFilter('rm-filter', f => { rmFilter = f; renderRoadmap(); });
+
+async function loadRoadmap() {
+  const { data, error } = await db.from('roadmap').select('*').order('sort_order');
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  rmData = data;
+  renderRoadmap();
+}
+
+function renderRoadmap() {
+  const rows = rmFilter ? rmData.filter(r => r.project === rmFilter) : rmData;
+  document.getElementById('rm-count').textContent = `${rows.length} etapów`;
+  const tbody = document.getElementById('rm-body');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">brak etapów</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td style="color:var(--fg-dim)">${esc(r.project)}</td>
+    <td>${esc(r.title)}</td>
+    <td><span class="tag-type tag-${esc(r.stage)}">${esc(r.stage)}</span></td>
+    <td style="color:var(--fg-dim);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.description)}</td>
+    <td style="color:var(--fg-mute)">${r.sort_order}</td>
+    <td>
+      <div class="actions">
+        <button class="btn btn-ghost btn-sm" onclick="rmEdit(${r.id})">edytuj</button>
+        <button class="btn btn-danger btn-sm" onclick="rmDelete(${r.id})">usuń</button>
+      </div>
+    </td>
+  </tr>`).join('');
+}
+
+function rmOpenModal(row = null) {
+  rmEditId = row ? row.id : null;
+  document.getElementById('rm-modal-title').textContent = row ? 'edytuj etap' : 'nowy etap';
+  document.getElementById('rm-project').value = row?.project     ?? 'PMS';
+  document.getElementById('rm-title').value   = row?.title       ?? '';
+  document.getElementById('rm-stage').value   = row?.stage       ?? 'planned';
+  document.getElementById('rm-sort').value    = row?.sort_order  ?? '';
+  document.getElementById('rm-desc').value    = row?.description ?? '';
+  openModal('rm-modal');
+}
+
+window.rmEdit = id => rmOpenModal(rmData.find(r => r.id === id));
+document.getElementById('rm-add-btn').addEventListener('click', () => rmOpenModal());
+
+document.getElementById('rm-save-btn').addEventListener('click', async () => {
+  const title = document.getElementById('rm-title').value.trim();
+  if (!title) { toast('Wpisz tytuł etapu', 'err'); return; }
+  const payload = {
+    project:     document.getElementById('rm-project').value,
+    title,
+    stage:       document.getElementById('rm-stage').value,
+    sort_order:  parseInt(document.getElementById('rm-sort').value || '0', 10),
+    description: document.getElementById('rm-desc').value.trim(),
+  };
+  const btn = document.getElementById('rm-save-btn');
+  btn.textContent = 'zapisywanie…'; btn.disabled = true;
+  let error;
+  if (rmEditId) {
+    ({ error } = await db.from('roadmap').update(payload).eq('id', rmEditId));
+  } else {
+    ({ error } = await db.from('roadmap').insert(payload));
+  }
+  btn.textContent = 'zapisz'; btn.disabled = false;
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast(rmEditId ? 'Etap zaktualizowany ✓' : 'Etap dodany ✓');
+  closeModal('rm-modal');
+  loadRoadmap();
+});
+
+window.rmDelete = id => confirmDelete(async () => {
+  const { error } = await db.from('roadmap').delete().eq('id', id);
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast('Etap usunięty'); loadRoadmap();
+});
+
+
+// ── DELETE CONFIRM ─────────────────────────────────
+let _deleteCb = null;
+function confirmDelete(cb) {
+  _deleteCb = cb;
+  openModal('del-modal');
+}
+document.getElementById('del-confirm-btn').addEventListener('click', async () => {
+  closeModal('del-modal');
+  if (_deleteCb) await _deleteCb();
+  _deleteCb = null;
+});
+
+// ── INIT ───────────────────────────────────────────
+initAuth();
+</script>
+</body>
+</html>

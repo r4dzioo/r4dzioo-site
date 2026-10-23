@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>r4dzioo — projects</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+/* ── TOKENS ─────────────────────────────────────── */
+:root {
+  --bg:          #0a0700;
+  --amber:       #ff9f0a;
+  --amber-mid:   #cc7a00;
+  --amber-dim:   #7a4a00;
+  --amber-faint: #2a1a00;
+  --amber-glow:  rgba(255,159,10,0.18);
+  --text:        #d48a20;
+  --text-dim:    #8a6a30;
+  --text-faint:  #3a2a10;
+  --sb-h:        28px;
+  --font:        'JetBrains Mono', monospace;
+  --base:        13px;
+  --green:       #4a9a50;
+  --yellow:      #e0b030;
+  --blue:        #4a80c0;
+  --red:         #c05050;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--base);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+/* CRT */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+  pointer-events: none; z-index: 999;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.65) 100%);
+  pointer-events: none; z-index: 998;
+}
+
+/* ── MATRIX BG ───────────────────────────────────── */
+#matrix-bg {
+  position: fixed; inset: 0;
+  opacity: 0.07; pointer-events: none; z-index: 0;
+}
+
+/* ── STATUSBAR ───────────────────────────────────── */
+.statusbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--sb-h);
+  background: var(--amber-faint);
+  border-bottom: 1px solid var(--amber-dim);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; font-size: 11.5px; color: var(--text-dim);
+  z-index: 100; letter-spacing: 0.03em;
+}
+.sb-back {
+  color: var(--amber-dim); text-decoration: none;
+  transition: color 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.sb-back:hover { color: var(--amber); }
+.sb-path  { color: var(--text-dim); }
+.sb-right { color: var(--amber); font-size: 11.5px; }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.page {
+  position: relative; z-index: 1;
+  padding-top: calc(var(--sb-h) + 32px);
+  padding-bottom: 48px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-left: 28px;
+  padding-right: 28px;
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+.page-title {
+  font-size: 26px; font-weight: 700;
+  color: var(--amber);
+  text-shadow: 0 0 24px rgba(255,159,10,0.3);
+  letter-spacing: -0.01em;
+}
+.page-title .dim { color: var(--amber-dim); }
+.page-sub {
+  font-size: 11.5px; color: var(--text-dim);
+  margin-top: 5px;
+}
+
+/* ── TABS ────────────────────────────────────────── */
+.tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--amber-dim);
+  margin-bottom: 28px;
+}
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font); font-size: 12px;
+  color: var(--text-dim);
+  padding: 8px 20px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+}
+.tab-btn:hover { color: var(--amber-mid); }
+.tab-btn.active {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── CHANGELOG ───────────────────────────────────── */
+.cl-entry {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 0 20px;
+  margin-bottom: 0;
+}
+.cl-entry + .cl-entry { border-top: 1px solid var(--amber-faint); }
+.cl-date-col {
+  padding: 16px 0;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cl-date {
+  font-size: 11px; color: var(--amber-dim);
+  white-space: nowrap;
+}
+.cl-project-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  border: 1px solid;
+  display: inline-block;
+  width: fit-content;
+}
+.badge-pms      { color: var(--amber); border-color: var(--amber-dim); background: var(--amber-faint); }
+.badge-cz       { color: #6ab0d0; border-color: #2a5a70; background: #0a1a20; }
+.badge-general  { color: var(--text-dim); border-color: var(--text-faint); background: transparent; }
+
+.cl-body { padding: 16px 0; }
+.cl-title {
+  font-size: 13px; font-weight: 500;
+  color: var(--text); margin-bottom: 5px;
+  display: flex; align-items: center; gap: 8px;
+}
+.cl-type {
+  font-size: 10px;
+  padding: 1px 6px; border-radius: 2px;
+  font-weight: 400;
+}
+.type-feat { background: rgba(74,154,80,0.15); color: var(--green); border: 1px solid rgba(74,154,80,0.3); }
+.type-fix  { background: rgba(192,80,80,0.15); color: var(--red);   border: 1px solid rgba(192,80,80,0.3); }
+.type-wip  { background: rgba(224,176,48,0.15); color: var(--yellow); border: 1px solid rgba(224,176,48,0.3); }
+.type-init { background: rgba(74,128,192,0.15); color: var(--blue);  border: 1px solid rgba(74,128,192,0.3); }
+
+.cl-desc {
+  font-size: 11.5px; color: var(--text-dim);
+  line-height: 1.65;
+}
+.cl-desc ul { padding-left: 16px; margin-top: 4px; }
+.cl-desc li { margin-bottom: 2px; }
+.cl-desc li::marker { color: var(--amber-dim); }
+
+/* ── STATUS ──────────────────────────────────────── */
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.status-card {
+  border: 1px solid var(--amber-dim);
+  border-radius: 3px;
+  background: rgba(10,7,0,0.6);
+  overflow: hidden;
+}
+.sc-header {
+  padding: 12px 16px;
+  background: var(--amber-faint);
+  border-bottom: 1px solid var(--amber-dim);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sc-name {
+  font-size: 13px; font-weight: 700;
+  color: var(--amber);
+}
+.sc-pct {
+  font-size: 11px; color: var(--text-dim);
+}
+.sc-bar-wrap {
+  height: 3px; background: var(--amber-faint);
+}
+.sc-bar {
+  height: 100%; background: var(--amber);
+  box-shadow: 0 0 8px rgba(255,159,10,0.4);
+  transition: width 1s ease;
+}
+.sc-tasks { padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+.sc-task {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11.5px;
+}
+.sc-task-icon {
+  width: 14px; height: 14px;
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; flex-shrink: 0;
+}
+.icon-done  { background: rgba(74,154,80,0.2);  color: var(--green);  border: 1px solid rgba(74,154,80,0.4); }
+.icon-wip   { background: rgba(224,176,48,0.2); color: var(--yellow); border: 1px solid rgba(224,176,48,0.4); }
+.icon-todo  { background: rgba(122,74,0,0.2);   color: var(--amber-dim); border: 1px solid var(--amber-faint); }
+.sc-task-text { color: var(--text-dim); }
+.sc-task-text.done { color: var(--text-faint); text-decoration: line-through; }
+.sc-task-text.wip  { color: var(--text); }
+.sc-footer {
+  padding: 8px 16px;
+  border-top: 1px solid var(--amber-faint);
+  font-size: 10.5px; color: var(--text-faint);
+  display: flex; justify-content: space-between;
+}
+.sc-status-dot {
+  display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; margin-right: 5px;
+}
+.dot-active   { background: var(--green);  box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+.dot-paused   { background: var(--yellow); }
+.dot-planned  { background: var(--blue); }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+/* ── SHOWCASE ─────────────────────────────────────── */
+.showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.sh-card {
+  border: 1px solid var(--amber-dim);
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(10,7,0,0.6);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.sh-card:hover {
+  border-color: var(--amber);
+  box-shadow: 0 0 20px rgba(255,159,10,0.12);
+}
+.sh-thumb {
+  width: 100%; aspect-ratio: 16/9;
+  background: var(--amber-faint);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--text-faint);
+  position: relative; overflow: hidden;
+}
+.sh-thumb-placeholder {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  color: var(--amber-dim);
+}
+.sh-thumb-icon { font-size: 28px; opacity: 0.4; }
+.sh-thumb-label { font-size: 10px; letter-spacing: 0.08em; }
+/* If you add real screenshots: <img class="sh-img" src="…"> */
+.sh-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sh-meta { padding: 12px 14px; }
+.sh-title {
+  font-size: 12.5px; font-weight: 500; color: var(--text);
+  margin-bottom: 4px;
+}
+.sh-desc { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+.sh-tag-row { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.sh-tag {
+  font-size: 10px; color: var(--amber-dim);
+  border: 1px solid var(--amber-faint);
+  padding: 1px 7px; border-radius: 2px;
+}
+.sh-add-hint {
+  border: 1px dashed var(--amber-faint);
+  border-radius: 3px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px; padding: 32px 16px;
+  color: var(--text-faint); font-size: 11px;
+  text-align: center;
+}
+
+/* ── ROADMAP ─────────────────────────────────────── */
+.roadmap-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.rm-col-header {
+  font-size: 11px; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--amber-faint);
+  display: flex; align-items: center; gap: 7px;
+}
+.rm-col-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.col-todo     .rm-col-dot { background: var(--amber-dim); }
+.col-doing    .rm-col-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: pulse 2s infinite; }
+.col-done-col .rm-col-dot { background: var(--green); }
+
+.rm-cards { display: flex; flex-direction: column; gap: 8px; }
+.rm-card {
+  border: 1px solid var(--amber-faint);
+  border-radius: 3px;
+  padding: 10px 12px;
+  background: rgba(10,7,0,0.5);
+  transition: border-color 0.15s;
+}
+.rm-card:hover { border-color: var(--amber-dim); }
+.rm-card-title { font-size: 12px; color: var(--text); font-weight: 500; margin-bottom: 3px; }
+.rm-card-proj  { font-size: 10px; color: var(--text-faint); }
+.rm-card-desc  { font-size: 11px; color: var(--text-dim); margin-top: 5px; line-height: 1.55; }
+
+.col-doing .rm-card  { border-color: rgba(224,176,48,0.25); }
+.col-done-col .rm-card { opacity: 0.6; }
+
+/* ── EMPTY STATE ─────────────────────────────────── */
+.empty {
+  padding: 32px 0; text-align: center;
+  color: var(--text-faint); font-size: 12px;
+}
+
+/* ── MOBILE ──────────────────────────────────────── */
+@media (max-width: 640px) {
+  .status-grid   { grid-template-columns: 1fr; }
+  .roadmap-cols  { grid-template-columns: 1fr; }
+  .cl-entry      { grid-template-columns: 1fr; }
+  .cl-date-col   { padding-bottom: 0; flex-direction: row; align-items: center; gap: 8px; }
+  .cl-body       { padding-top: 6px; }
+  .tab-btn       { padding: 8px 12px; font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot-active, .col-doing .rm-col-dot { animation: none; }
+}
+  </style>
+</head>
+<body>
+
+<canvas id="matrix-bg"></canvas>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <a class="sb-back" href="index.html">
+    ← <span class="sb-path">~/portfolio</span>
+  </a>
+  <span style="color:var(--amber-dim)">
+    <span style="color:var(--amber-dim)">[</span>r4dzioo.dev<span style="color:var(--amber-dim)">]</span>
+    <span class="sb-path"> ~/portfolio/projects</span>
+  </span>
+  <span class="sb-right" id="sb-time"></span>
+</div>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title"><span class="dim">~/</span>projects</h1>
+    <p class="page-sub">$ ls -la — changelog · status · showcase · roadmap</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="changelog">changelog</button>
+    <button class="tab-btn" data-tab="status">status</button>
+    <button class="tab-btn" data-tab="showcase">showcase</button>
+    <button class="tab-btn" data-tab="roadmap">roadmap</button>
+  </div>
+
+  <!-- ── CHANGELOG ── -->
+  <div class="tab-panel active" id="tab-changelog">
+
+    <div class="cl-entry">
+      <div class="cl-date-col">
+        <span class="cl-date">Oct 2026</span>
+        <span class="cl-project-badge badge-cz">Czech Republic</span>
+      </div>
+      <div class="cl-body">
+        <div class="cl-title">Highway network — D1 corridor <span class="cl-type type-wip">wip</span></div>
+        <div class="cl-desc">
+          D1 motorway from Prague to Brno roughed in. Terrain sculpting in progress along the route.
+          <ul><li>Elevation data referenced from real topographic maps</li><li>Road surface materials assigned</li></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-entry">
+      <div class="cl-date-col">
+        <span class="cl-date">Sep 2026</span>
+        <span class="cl-project-badge badge-pms">PMS</span>
+      </div>
+      <div class="cl-body">
+        <div class="cl-title">v2.0 — full rewrite <span class="cl-type type-feat">feat</span></div>
+        <div class="cl-desc">
+          Complete system overhaul. New UI, improved unit management, profile support added.
+          <ul><li>Multi-profile support for different server configs</li><li>Action history with per-day grouping</li><li>Vehicle import system redesigned</li></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-entry">
+      <div class="cl-date-col">
+        <span class="cl-date">Aug 2026</span>
+        <span class="cl-project-badge badge-cz">Czech Republic</span>
+      </div>
+      <div class="cl-body">
+        <div class="cl-title">Prague city center blocked out <span class="cl-type type-feat">feat</span></div>
+        <div class="cl-desc">
+          Old Town and New Town district layouts placed. Building volumes roughed in for major landmarks.
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-entry">
+      <div class="cl-date-col">
+        <span class="cl-date">Jul 2026</span>
+        <span class="cl-project-badge badge-pms">PMS</span>
+      </div>
+      <div class="cl-body">
+        <div class="cl-title">Vehicle import bugs patched <span class="cl-type type-fix">fix</span></div>
+        <div class="cl-desc">
+          Fixed duplicate entry on rapid re-import. Status sync issue on vehicle reassignment resolved.
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-entry">
+      <div class="cl-date-col">
+        <span class="cl-date">May 2026</span>
+        <span class="cl-project-badge badge-cz">Czech Republic</span>
+      </div>
+      <div class="cl-body">
+        <div class="cl-title">Project kickoff <span class="cl-type type-init">init</span></div>
+        <div class="cl-desc">
+          Map boundaries set, reference data collected, initial terrain mesh generated.
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-entry">
+      <div class="cl-date-col">
+        <span class="cl-date">Mar 2026</span>
+        <span class="cl-project-badge badge-pms">PMS</span>
+      </div>
+      <div class="cl-body">
+        <div class="cl-title">v1.0 — initial release <span class="cl-type type-init">init</span></div>
+        <div class="cl-desc">
+          First working version of the property management system. Unit tracking, basic dispatch, localStorage persistence.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── STATUS ── -->
+  <div class="tab-panel" id="tab-status">
+    <div class="status-grid">
+
+      <div class="status-card">
+        <div class="sc-header">
+          <span class="sc-name">PMS</span>
+          <span class="sc-pct">75%</span>
+        </div>
+        <div class="sc-bar-wrap"><div class="sc-bar" style="width:75%"></div></div>
+        <div class="sc-tasks">
+          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Core dispatch system</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Vehicle management</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Multi-profile support</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Action history log</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-wip">…</div><span class="sc-task-text wip">Live sync between clients</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Notification system</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Export to PDF/CSV</span></div>
+        </div>
+        <div class="sc-footer">
+          <span><span class="sc-status-dot dot-active"></span>active development</span>
+          <span>last update: Sep 2026</span>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="sc-header">
+          <span class="sc-name">Project: Czech Republic</span>
+          <span class="sc-pct">30%</span>
+        </div>
+        <div class="sc-bar-wrap"><div class="sc-bar" style="width:30%"></div></div>
+        <div class="sc-tasks">
+          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Map boundaries & scale</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Base terrain mesh</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Prague center blocked out</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-wip">…</div><span class="sc-task-text wip">D1 highway corridor</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-wip">…</div><span class="sc-task-text wip">Terrain detailing</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Brno city layout</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Vehicle spawn points</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Lighting & atmosphere</span></div>
+          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Optimization pass</span></div>
+        </div>
+        <div class="sc-footer">
+          <span><span class="sc-status-dot dot-active"></span>active development</span>
+          <span>last update: Oct 2026</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SHOWCASE ── -->
+  <div class="tab-panel" id="tab-showcase">
+    <div class="showcase-grid">
+
+      <div class="sh-card">
+        <div class="sh-thumb">
+          <!-- Replace with: <img class="sh-img" src="screenshot1.jpg" alt="…"> -->
+          <div class="sh-thumb-placeholder">
+            <div class="sh-thumb-icon">🗺</div>
+            <div class="sh-thumb-label">screenshot_01.jpg</div>
+          </div>
+        </div>
+        <div class="sh-meta">
+          <div class="sh-title">Czech Republic — Prague overview</div>
+          <div class="sh-desc">Aerial view of the blocked-out city centre. Old Town Square area.</div>
+          <div class="sh-tag-row">
+            <span class="sh-tag">Czech Republic</span>
+            <span class="sh-tag">terrain</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sh-card">
+        <div class="sh-thumb">
+          <div class="sh-thumb-placeholder">
+            <div class="sh-thumb-icon">🛣</div>
+            <div class="sh-thumb-label">screenshot_02.jpg</div>
+          </div>
+        </div>
+        <div class="sh-meta">
+          <div class="sh-title">D1 motorway — early pass</div>
+          <div class="sh-desc">First segment of the D1 corridor. Road mesh and basic surface materials in place.</div>
+          <div class="sh-tag-row">
+            <span class="sh-tag">Czech Republic</span>
+            <span class="sh-tag">roads</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sh-card">
+        <div class="sh-thumb">
+          <div class="sh-thumb-placeholder">
+            <div class="sh-thumb-icon">🚗</div>
+            <div class="sh-thumb-label">screenshot_03.jpg</div>
+          </div>
+        </div>
+        <div class="sh-meta">
+          <div class="sh-title">PMS — dispatch board</div>
+          <div class="sh-desc">Live unit tracking interface. Shows active, dispatched and unavailable units.</div>
+          <div class="sh-tag-row">
+            <span class="sh-tag">PMS</span>
+            <span class="sh-tag">UI</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add more: copy the .sh-card block above and swap content -->
+      <div class="sh-add-hint">
+        <span style="font-size:20px;opacity:0.3">+</span>
+        drop screenshots here<br>
+        <span style="font-size:10px;margin-top:4px;opacity:0.5">replace placeholder divs with &lt;img&gt; tags</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── ROADMAP ── -->
+  <div class="tab-panel" id="tab-roadmap">
+    <div class="roadmap-cols">
+
+      <div class="rm-col col-todo">
+        <div class="rm-col-header"><span class="rm-col-dot"></span> planned</div>
+        <div class="rm-cards">
+          <div class="rm-card">
+            <div class="rm-card-title">Brno city layout</div>
+            <div class="rm-card-proj">Czech Republic</div>
+            <div class="rm-card-desc">Second major city. Street grid, district shapes, key landmarks.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Vehicle spawn system</div>
+            <div class="rm-card-proj">Czech Republic</div>
+            <div class="rm-card-desc">Designated spawn points for emergency and civilian vehicles.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Notification system</div>
+            <div class="rm-card-proj">PMS</div>
+            <div class="rm-card-desc">In-app alerts for unit status changes and new dispatches.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Export to CSV / PDF</div>
+            <div class="rm-card-proj">PMS</div>
+            <div class="rm-card-desc">Download shift reports and action logs for external review.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Atmosphere & lighting pass</div>
+            <div class="rm-card-proj">Czech Republic</div>
+            <div class="rm-card-desc">Day/night cycle tuning, fog, ambient occlusion bake.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rm-col col-doing">
+        <div class="rm-col-header"><span class="rm-col-dot"></span> in progress</div>
+        <div class="rm-cards">
+          <div class="rm-card">
+            <div class="rm-card-title">D1 highway corridor</div>
+            <div class="rm-card-proj">Czech Republic</div>
+            <div class="rm-card-desc">Prague–Brno motorway. Road mesh laid, terrain sculpting ongoing.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Terrain detailing</div>
+            <div class="rm-card-proj">Czech Republic</div>
+            <div class="rm-card-desc">Foliage, elevation micro-detail, riverbank shaping.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Live client sync</div>
+            <div class="rm-card-proj">PMS</div>
+            <div class="rm-card-desc">Real-time unit state sync between multiple dispatcher windows.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rm-col col-done-col">
+        <div class="rm-col-header"><span class="rm-col-dot"></span> shipped</div>
+        <div class="rm-cards">
+          <div class="rm-card">
+            <div class="rm-card-title">PMS v2 rewrite</div>
+            <div class="rm-card-proj">PMS</div>
+            <div class="rm-card-desc">Full UI overhaul, multi-profile, action history.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Vehicle import system</div>
+            <div class="rm-card-proj">PMS</div>
+            <div class="rm-card-desc">Redesigned import flow with duplicate detection.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Prague city centre</div>
+            <div class="rm-card-proj">Czech Republic</div>
+            <div class="rm-card-desc">Old Town and New Town district volumes placed.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-card-title">Base terrain mesh</div>
+            <div class="rm-card-proj">Czech Republic</div>
+            <div class="rm-card-desc">Country-level terrain generated from reference data.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+/* ── CLOCK ── */
+(function() {
+  const el = document.getElementById('sb-time');
+  function tick() {
+    const n = new Date(), p = x => String(x).padStart(2,'0');
+    const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    el.textContent = `${n.getDate()} ${mo[n.getMonth()]} ${n.getFullYear()} ${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ── TABS ── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    // animate progress bars when switching to status tab
+    if (btn.dataset.tab === 'status') {
+      document.querySelectorAll('.sc-bar').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0';
+        requestAnimationFrame(() => { bar.style.width = w; });
+      });
+    }
+  });
+});
+
+/* ── MATRIX BG ── */
+(function() {
+  const c   = document.getElementById('matrix-bg');
+  const ctx = c.getContext('2d');
+  const CH  = 'アイウエオカキクケコ0123456789ABCDEF:./|><-_=+';
+  const FS  = 14;
+  let cols, drops;
+  function resize() {
+    c.width  = window.innerWidth;
+    c.height = window.innerHeight;
+    cols  = Math.floor(c.width / FS);
+    drops = Array.from({length: cols}, () => Math.random() * -60);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  setInterval(() => {
+    ctx.fillStyle = 'rgba(5,4,0,0.04)';
+    ctx.fillRect(0, 0, c.width, c.height);
+    for (let i = 0; i < cols; i++) {
+      const ch = CH[Math.floor(Math.random() * CH.length)];
+      const y  = drops[i] * FS;
+      ctx.font      = `${FS}px JetBrains Mono, monospace`;
+      ctx.fillStyle = drops[i] < 2 ? '#ffcf6a' : '#7a4a00';
+      ctx.fillText(ch, i * FS, y);
+      if (y > c.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += 0.4;
+    }
+  }, 55);
+})();
+</script>
+</body>
+</html>

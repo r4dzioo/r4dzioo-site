@@ -49,7 +49,10 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY25pZXRjempkZ2d3YWtxdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NzU2OTEsImV4cCI6MjEwODM1MTY5MX0.YeCJs2U0iE9MPII6tL5qdalhzxZAtjFU8DGKoIWIi38';
 
   const el     = document.getElementById('counter-val');
+<<<<<<< HEAD
   if (!el) return;
+=======
+>>>>>>> f93a3ed284549c8bc93cb1d683ebd99f8436f0c8
   const LS_KEY = 'r4dzioo_counted';
   const TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -100,15 +103,21 @@
         body: JSON.stringify({ row_key: 'profile-views' }),
       }
     );
+<<<<<<< HEAD
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const val = await res.json();
     // val is returned directly as BIGINT (a number)
+=======
+    if (!res.ok) throw new Error(res.status);
+    const val = await res.json();
+>>>>>>> f93a3ed284549c8bc93cb1d683ebd99f8436f0c8
     localStorage.setItem(LS_KEY, String(Date.now()));
     return val;
   }
 
   (async () => {
     try {
+<<<<<<< HEAD
       let val;
       if (shouldIncrement()) {
         try {
@@ -121,6 +130,9 @@
       } else {
         val = await readCount();
       }
+=======
+      const val = shouldIncrement() ? await incrementCount() : await readCount();
+>>>>>>> f93a3ed284549c8bc93cb1d683ebd99f8436f0c8
       animateTo(val);
     } catch (err) {
       console.warn('Supabase counter error:', err);

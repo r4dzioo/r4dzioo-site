@@ -43,11 +43,16 @@
 })();
 
 
-/* ── VISIT COUNTER — counterapi.dev v1 ────────── */
+/* ── VISIT COUNTER — Supabase ──────────────────── */
 (function initCounter() {
-  const el  = document.getElementById('counter-val');
-  // v1: no auth, public, global — everyone hits the same counter
-  const API = 'https://api.counterapi.dev/v1/r4dzioo-portfolio/visits/up';
+  // ── KONFIGURACJA (wklej swoje dane) ──────────────
+  const SUPABASE_URL = 'WKLEJ_TUTAJ_SUPABASE_URL';
+  const SUPABASE_KEY = 'WKLEJ_TUTAJ_SUPABASE_ANON_KEY';
+  // ─────────────────────────────────────────────────
+
+  const el = document.getElementById('counter-val');
+  const LS_KEY = 'r4dzioo_counted';
+  const TTL_MS = 24 * 60 * 60 * 1000; // 24 h
 
   function fmt(n) {
     return isNaN(n) ? '----' : String(n).padStart(4, '0');
@@ -64,31 +69,54 @@
     }, 55);
   }
 
-  fetch(API)
-    .then(r => {
-      if (!r.ok) throw new Error(r.status);
-      return r.json();
-    })
-    .then(data => {
-      // counterapi.dev v1 returns { count: N }
-      const val = typeof data.count === 'number' ? data.count
-                : typeof data.value === 'number' ? data.value
-                : null;
-      if (val !== null) {
-        animateTo(val);
-      } else {
-        el.textContent = '????';
-        console.warn('counterapi unexpected response:', data);
+  // Sprawdź czy użytkownik był liczony w ciągu ostatnich 24h
+  function shouldIncrement() {
+    const ts = parseInt(localStorage.getItem(LS_KEY) || '0', 10);
+    return Date.now() - ts > TTL_MS;
+  }
+
+  // Tylko READ (nie inkrementuj)
+  async function readCount() {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/stats?key=eq.profile-views&select=value`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    if (!res.ok) throw new Error(res.status);
+    const rows = await res.json();
+    return rows[0]?.value ?? 0;
+  }
+
+  // Inkrementuj przez RPC i zapamiętaj timestamp
+  async function incrementCount() {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/rpc/increment_views`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ row_key: 'profile-views' }),
       }
-    })
-    .catch(err => {
-      console.warn('counterapi.dev failed:', err);
-      // Offline fallback — still shows something
-      const lsKey = 'r4dzioo_visits_fallback';
-      const v = parseInt(localStorage.getItem(lsKey) || '0', 10) + 1;
-      localStorage.setItem(lsKey, v);
-      animateTo(v);
-    });
+    );
+    if (!res.ok) throw new Error(res.status);
+    const val = await res.json(); // RPC zwraca INT bezpośrednio
+    localStorage.setItem(LS_KEY, String(Date.now()));
+    return val;
+  }
+
+  (async () => {
+    try {
+      const val = shouldIncrement()
+        ? await incrementCount()
+        : await readCount();
+      animateTo(val);
+    } catch (err) {
+      console.warn('Supabase counter error:', err);
+      el.textContent = '????';
+    }
+  })();
 })();
 
 

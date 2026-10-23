@@ -26,6 +26,7 @@ CREATE POLICY "anon read stats"
 
 
 -- ─── 2. RPC: increment_views ────────────────────────────────────
+DROP FUNCTION IF EXISTS increment_views(TEXT);
 CREATE OR REPLACE FUNCTION increment_views(row_key TEXT)
 RETURNS BIGINT
 LANGUAGE plpgsql
@@ -131,7 +132,35 @@ CREATE POLICY "auth full roadmap"
   WITH CHECK (true);
 
 
--- ─── 6. Przykładowe dane (opcjonalne, usuń jeśli nie chcesz) ────
+-- ─── 6. SHOWCASE ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS showcase (
+  id          BIGSERIAL PRIMARY KEY,
+  project     TEXT        NOT NULL,
+  title       TEXT        NOT NULL,
+  description TEXT,
+  image_url   TEXT,
+  tags        JSONB       DEFAULT '[]'::jsonb,
+  sort_order  INTEGER     NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE showcase ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "anon read showcase" ON showcase;
+CREATE POLICY "anon read showcase"
+  ON showcase FOR SELECT
+  TO anon
+  USING (true);
+
+DROP POLICY IF EXISTS "auth full showcase" ON showcase;
+CREATE POLICY "auth full showcase"
+  ON showcase FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+
+-- ─── 7. Przykładowe dane (opcjonalne, usuń jeśli nie chcesz) ────
 
 INSERT INTO changelog (date, project, type, title, description, bullets) VALUES
   ('2024-10-01', 'PMS',                   'feat', 'System patroli v2',       'Przepisany od zera system zarządzania patrolami.', '["Nowy UI dispatch board","Logi akcji w czasie rzeczywistym"]'),
@@ -155,4 +184,10 @@ INSERT INTO roadmap (project, title, stage, description, sort_order) VALUES
   ('Project: Czech Republic','Terrain pass',       'doing',   'Modelowanie terenu, główne drogi.',                   1),
   ('Project: Czech Republic','City buildings',     'planned', 'Obiekty i budynki w centrum Pragi.',                  2),
   ('Project: Czech Republic','Open beta',          'planned', 'Pierwsza publiczna wersja mapy.',                     3)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO showcase (project, title, description, image_url, tags, sort_order) VALUES
+  ('Project: Czech Republic', 'Prague overview',    'Aerial view of the blocked-out city centre. Old Town Square area.', null, '["Czech Republic","terrain"]', 1),
+  ('Project: Czech Republic', 'D1 motorway',        'First segment of the D1 corridor. Road mesh and basic surface materials in place.', null, '["Czech Republic","roads"]', 2),
+  ('PMS',                     'Dispatch board',     'Live unit tracking interface. Shows active, dispatched and unavailable units.', null, '["PMS","UI"]', 3)
 ON CONFLICT DO NOTHING;

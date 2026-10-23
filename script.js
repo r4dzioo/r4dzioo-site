@@ -45,48 +45,48 @@
 
 /* ── VISIT COUNTER — Supabase ──────────────────── */
 (function initCounter() {
-  // ── KONFIGURACJA (wklej swoje dane) ──────────────
-  const SUPABASE_URL = 'WKLEJ_TUTAJ_SUPABASE_URL';
-  const SUPABASE_KEY = 'WKLEJ_TUTAJ_SUPABASE_ANON_KEY';
-  // ─────────────────────────────────────────────────
+  const SUPABASE_URL = 'https://xhcnietczjdggwakqtip.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY25pZXRjempkZ2d3YWtxdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NzU2OTEsImV4cCI6MjEwODM1MTY5MX0.YeCJs2U0iE9MPII6tL5qdalhzxZAtjFU8DGKoIWIi38';
 
-  const el = document.getElementById('counter-val');
+  const el     = document.getElementById('counter-val');
+  if (!el) return;
   const LS_KEY = 'r4dzioo_counted';
-  const TTL_MS = 24 * 60 * 60 * 1000; // 24 h
+  const TTL_MS = 24 * 60 * 60 * 1000;
 
   function fmt(n) {
-    return isNaN(n) ? '----' : String(n).padStart(4, '0');
+    const num = parseInt(n, 10);
+    return isNaN(num) ? '----' : String(num).padStart(4, '0');
   }
 
   function animateTo(target) {
-    const start = Math.max(0, target - 14);
+    const t = parseInt(target, 10);
+    if (isNaN(t)) { el.textContent = '----'; return; }
+    const start = Math.max(0, t - 14);
     let cur = start;
     el.textContent = fmt(cur);
     const iv = setInterval(() => {
-      cur = Math.min(cur + 1, target);
+      cur = Math.min(cur + 1, t);
       el.textContent = fmt(cur);
-      if (cur >= target) clearInterval(iv);
+      if (cur >= t) clearInterval(iv);
     }, 55);
   }
 
-  // Sprawdź czy użytkownik był liczony w ciągu ostatnich 24h
   function shouldIncrement() {
     const ts = parseInt(localStorage.getItem(LS_KEY) || '0', 10);
     return Date.now() - ts > TTL_MS;
   }
 
-  // Tylko READ (nie inkrementuj)
   async function readCount() {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/stats?key=eq.profile-views&select=value`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
-    if (!res.ok) throw new Error(res.status);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
-    return rows[0]?.value ?? 0;
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error('no rows');
+    return rows[0].value ?? 0;
   }
 
-  // Inkrementuj przez RPC i zapamiętaj timestamp
   async function incrementCount() {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/rpc/increment_views`,
@@ -100,21 +100,31 @@
         body: JSON.stringify({ row_key: 'profile-views' }),
       }
     );
-    if (!res.ok) throw new Error(res.status);
-    const val = await res.json(); // RPC zwraca INT bezpośrednio
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const val = await res.json();
+    // val is returned directly as BIGINT (a number)
     localStorage.setItem(LS_KEY, String(Date.now()));
     return val;
   }
 
   (async () => {
     try {
-      const val = shouldIncrement()
-        ? await incrementCount()
-        : await readCount();
+      let val;
+      if (shouldIncrement()) {
+        try {
+          val = await incrementCount();
+        } catch (rpcErr) {
+          // RPC failed — fallback to read-only
+          console.warn('increment_views RPC error, falling back to read:', rpcErr);
+          val = await readCount();
+        }
+      } else {
+        val = await readCount();
+      }
       animateTo(val);
     } catch (err) {
       console.warn('Supabase counter error:', err);
-      el.textContent = '????';
+      el.textContent = '----';
     }
   })();
 })();

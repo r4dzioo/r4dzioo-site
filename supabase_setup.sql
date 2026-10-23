@@ -10,12 +10,10 @@ CREATE TABLE IF NOT EXISTS stats (
   value BIGINT NOT NULL DEFAULT 0
 );
 
--- Wstaw rekord jeśli nie istnieje
 INSERT INTO stats (key, value)
 VALUES ('profile-views', 0)
 ON CONFLICT (key) DO NOTHING;
 
--- RLS: anon może czytać
 ALTER TABLE stats ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "anon read stats" ON stats;
@@ -44,7 +42,6 @@ BEGIN
 END;
 $$;
 
--- Upewnij się że anon może wywołać funkcję
 GRANT EXECUTE ON FUNCTION increment_views(TEXT) TO anon;
 
 
@@ -62,14 +59,12 @@ CREATE TABLE IF NOT EXISTS changelog (
 
 ALTER TABLE changelog ENABLE ROW LEVEL SECURITY;
 
--- anon czyta
 DROP POLICY IF EXISTS "anon read changelog" ON changelog;
 CREATE POLICY "anon read changelog"
   ON changelog FOR SELECT
   TO anon
   USING (true);
 
--- authenticated (admin) może wszystko
 DROP POLICY IF EXISTS "auth full changelog" ON changelog;
 CREATE POLICY "auth full changelog"
   ON changelog FOR ALL
@@ -160,7 +155,44 @@ CREATE POLICY "auth full showcase"
   WITH CHECK (true);
 
 
--- ─── 7. Przykładowe dane (opcjonalne, usuń jeśli nie chcesz) ────
+-- ─── 7. DEVLOG ──────────────────────────────────────────────────
+-- Publiczny devlog: notatki z postępu prac, build logi, dev notes.
+-- Widoczne na /devlog.html, zarządzane przez admin panel.
+CREATE TABLE IF NOT EXISTS devlog (
+  id          BIGSERIAL PRIMARY KEY,
+  date        DATE        NOT NULL,
+  project     TEXT        NOT NULL,                       -- 'PMS' | 'Project: Czech Republic' | 'general'
+  type        TEXT        NOT NULL DEFAULT 'feat',        -- 'feat' | 'fix' | 'wip' | 'init' | 'design'
+  title       TEXT        NOT NULL,
+  description TEXT,
+  bullets     JSONB       DEFAULT '[]'::jsonb,            -- tablica stringów z bullet pointami
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE devlog ENABLE ROW LEVEL SECURITY;
+
+-- anon może czytać (publiczna strona)
+DROP POLICY IF EXISTS "anon read devlog" ON devlog;
+CREATE POLICY "anon read devlog"
+  ON devlog FOR SELECT
+  TO anon
+  USING (true);
+
+-- authenticated (admin) może wszystko
+DROP POLICY IF EXISTS "auth full devlog" ON devlog;
+CREATE POLICY "auth full devlog"
+  ON devlog FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- Indeks na datę (lista posortowana malejąco)
+CREATE INDEX IF NOT EXISTS devlog_date_idx ON devlog (date DESC);
+-- Indeks na projekt (filtrowanie)
+CREATE INDEX IF NOT EXISTS devlog_project_idx ON devlog (project);
+
+
+-- ─── 8. Przykładowe dane (opcjonalne, usuń jeśli nie chcesz) ────
 
 INSERT INTO changelog (date, project, type, title, description, bullets) VALUES
   ('2024-10-01', 'PMS',                   'feat', 'System patroli v2',       'Przepisany od zera system zarządzania patrolami.', '["Nowy UI dispatch board","Logi akcji w czasie rzeczywistym"]'),
@@ -190,4 +222,20 @@ INSERT INTO showcase (project, title, description, image_url, tags, sort_order) 
   ('Project: Czech Republic', 'Prague overview',    'Aerial view of the blocked-out city centre. Old Town Square area.', null, '["Czech Republic","terrain"]', 1),
   ('Project: Czech Republic', 'D1 motorway',        'First segment of the D1 corridor. Road mesh and basic surface materials in place.', null, '["Czech Republic","roads"]', 2),
   ('PMS',                     'Dispatch board',     'Live unit tracking interface. Shows active, dispatched and unavailable units.', null, '["PMS","UI"]', 3)
+ON CONFLICT DO NOTHING;
+
+-- Przykładowe wpisy devlog
+INSERT INTO devlog (date, project, type, title, description, bullets) VALUES
+  ('2024-10-10', 'PMS', 'feat',
+   'Dispatch board — pierwsze testy',
+   'Pierwsze działające sesje testowe nowego dispatch board. Logowanie jednostek działa stabilnie.',
+   '["Unit tracking w czasie rzeczywistym","Kolorowe statusy: active / dispatch / unavailable","Podstawowy sound design UI"]'),
+  ('2024-09-20', 'Project: Czech Republic', 'wip',
+   'Terrain pass — centrum Pragi',
+   'Aktywna praca nad terenem śródmieścia. Old Town Square w 60% ukończona.',
+   '["Bruk Old Town Square w trakcie","Granice ulic wytyczone","Rzeka Wełtawa — pierwsze kształty"]'),
+  ('2024-08-20', 'Project: Czech Republic', 'init',
+   'Projekt zainicjalizowany',
+   'Setup Roblox Studio, pierwsze referencje satelitarne, wstępna skala mapy.',
+   '["Skala 1:8 ustalona","Obszar: centrum Pragi 4x4 km","Pierwsze punkty referencyjne wbite"]')
 ON CONFLICT DO NOTHING;

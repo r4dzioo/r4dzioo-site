@@ -43,12 +43,11 @@
 })();
 
 
-/* ── VISIT COUNTER — countapi.dev ─────────────── */
+/* ── VISIT COUNTER — counterapi.dev v1 ────────── */
 (function initCounter() {
-  const el        = document.getElementById('counter-val');
-  const NAMESPACE = 'r4dzioo-portfolio';
-  const KEY       = 'visits';
-  const API       = `https://countapi.dev/hit/${NAMESPACE}/${KEY}`;
+  const el  = document.getElementById('counter-val');
+  // v1: no auth, public, global — everyone hits the same counter
+  const API = 'https://api.counterapi.dev/v1/r4dzioo-portfolio/visits/up';
 
   function fmt(n) {
     return isNaN(n) ? '----' : String(n).padStart(4, '0');
@@ -66,18 +65,25 @@
   }
 
   fetch(API)
-    .then(r => r.json())
+    .then(r => {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    })
     .then(data => {
-      // countapi.dev returns { value: N }
-      const val = data && (data.value ?? data.count ?? data.hits);
-      if (typeof val === 'number') {
+      // counterapi.dev v1 returns { count: N }
+      const val = typeof data.count === 'number' ? data.count
+                : typeof data.value === 'number' ? data.value
+                : null;
+      if (val !== null) {
         animateTo(val);
       } else {
-        el.textContent = '----';
+        el.textContent = '????';
+        console.warn('counterapi unexpected response:', data);
       }
     })
-    .catch(() => {
-      // Fallback: localStorage so the widget isn't completely broken offline
+    .catch(err => {
+      console.warn('counterapi.dev failed:', err);
+      // Offline fallback — still shows something
       const lsKey = 'r4dzioo_visits_fallback';
       const v = parseInt(localStorage.getItem(lsKey) || '0', 10) + 1;
       localStorage.setItem(lsKey, v);

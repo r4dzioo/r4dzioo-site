@@ -101,7 +101,7 @@ body::after {
   z-index: 1;
 }
 
-/* Matrix canvas for the LEFT column — positioned absolutely behind content */
+/* Matrix canvas for the LEFT column - positioned absolutely behind content */
 #matrix-canvas-left {
   position: absolute;
   inset: 0;
@@ -176,7 +176,7 @@ body::after {
   50%       { opacity: 1; }
 }
 
-/* Photo avatar — circular, amber-tinted border */
+/* Photo avatar - circular, amber-tinted border */
 .avatar-photo {
   position: absolute;
   inset: 0;
@@ -487,6 +487,30 @@ body::after {
   .statusbar .sb-path,
   .statusbar .sb-git { display: none; }
 }
+
+/* ── PROJECT LINKS ───────────────────────────────── */
+.section-link {
+  font-size: .72rem;
+  color: var(--amber-dim);
+  text-decoration: none;
+  margin-left: .4rem;
+  letter-spacing: .04em;
+  transition: color .15s;
+}
+.section-link:hover { color: var(--amber-hi); }
+
+.proj-link {
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  text-decoration: none;
+  color: inherit;
+  padding: .15rem 0;
+  transition: color .15s;
+}
+.proj-link:hover .proj-name { color: var(--amber-hi); }
+.proj-link:hover .proj-desc  { color: var(--amber-dim); }
+.proj-link:hover { text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .ring-outer, .ring-inner { animation: none; }

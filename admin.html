@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>r4dzioo — admin</title>
+  <title>r4dzioo - admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -296,7 +296,7 @@
       <span class="dot dot-r"></span>
       <span class="dot dot-y"></span>
       <span class="dot dot-g"></span>
-      <span class="login-title-text">r4dzioo@admin — bash</span>
+      <span class="login-title-text">r4dzioo@admin - bash</span>
     </div>
     <div class="login-body">
       <p class="login-prompt"><span>$ </span>sudo login</p>
@@ -326,6 +326,7 @@
     <button class="nav-tab active" data-tab="changelog">changelog</button>
     <button class="nav-tab" data-tab="tasks">status.tasks</button>
     <button class="nav-tab" data-tab="roadmap">roadmap</button>
+    <button class="nav-tab" data-tab="showcase">showcase</button>
   </div>
 
   <div class="content">
@@ -396,6 +397,30 @@
           </tr>
         </thead>
         <tbody id="rm-body"></tbody>
+      </table>
+    </div>
+
+    <!-- ── SHOWCASE TAB ── -->
+    <div id="tab-showcase" style="display:none">
+      <div class="sec-hdr">
+        <h2>showcase</h2>
+        <span class="count-badge" id="sh-count">0 kart</span>
+        <button class="btn btn-primary btn-sm" id="sh-add-btn">+ dodaj kartę</button>
+      </div>
+      <div class="filter-bar" id="sh-filter"></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>projekt</th>
+            <th>tytuł</th>
+            <th>opis</th>
+            <th>tagi</th>
+            <th>obrazek</th>
+            <th>kolejność</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="sh-body"></tbody>
       </table>
     </div>
 
@@ -547,6 +572,49 @@
   </div>
 </div>
 
+<!-- SHOWCASE MODAL -->
+<div class="modal-overlay" id="sh-modal">
+  <div class="modal">
+    <div class="modal-titlebar">
+      <span class="modal-title" id="sh-modal-title">nowa karta</span>
+      <button class="modal-close" data-close="sh-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>projekt</label>
+        <select id="sh-project">
+          <option value="PMS">PMS</option>
+          <option value="Project: Czech Republic">Project: Czech Republic</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>tytuł</label>
+        <input type="text" id="sh-title" placeholder="np. Prague overview" />
+      </div>
+      <div class="field">
+        <label>opis</label>
+        <textarea id="sh-desc" placeholder="Krótki opis screenshota…"></textarea>
+      </div>
+      <div class="field">
+        <label>URL obrazka (opcjonalnie)</label>
+        <input type="text" id="sh-image" placeholder="https://…/screenshot.jpg" />
+      </div>
+      <div class="field">
+        <label>tagi (po przecinku)</label>
+        <input type="text" id="sh-tags" placeholder="terrain, roads, UI" />
+      </div>
+      <div class="field">
+        <label>kolejność (sort_order)</label>
+        <input type="text" id="sh-sort" placeholder="1" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="sh-modal">anuluj</button>
+      <button class="btn btn-primary" id="sh-save-btn">zapisz</button>
+    </div>
+  </div>
+</div>
+
 <!-- DELETE CONFIRM MODAL -->
 <div class="modal-overlay" id="del-modal">
   <div class="modal" style="max-width:380px">
@@ -569,7 +637,7 @@
 
 <script>
 /* ══════════════════════════════════════════════════
-   r4dzioo admin panel — main script
+   r4dzioo admin panel - main script
    ══════════════════════════════════════════════════ */
 
 // ── KONFIGURACJA ───────────────────────────────────
@@ -655,11 +723,11 @@ function showApp(user) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('top-user').textContent = user.email;
-  loadChangelog(); loadTasks(); loadRoadmap();
+  loadChangelog(); loadTasks(); loadRoadmap(); loadShowcase();
 }
 
 // ── TABS ───────────────────────────────────────────
-const TABS = ['changelog','tasks','roadmap'];
+const TABS = ['changelog','tasks','roadmap','showcase'];
 document.querySelectorAll('.nav-tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
@@ -707,7 +775,7 @@ function renderChangelog() {
   const tbody = document.getElementById('cl-body');
 
   if (!rows.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">brak wpisów — dodaj pierwszy</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">brak wpisów - dodaj pierwszy</td></tr>';
     return;
   }
 
@@ -966,6 +1034,100 @@ window.rmDelete = id => confirmDelete(async () => {
   const { error } = await db.from('roadmap').delete().eq('id', id);
   if (error) { toast('Błąd: ' + error.message, 'err'); return; }
   toast('Etap usunięty'); loadRoadmap();
+});
+
+
+// ════════════════════════════════════════════════════
+//  SHOWCASE
+// ════════════════════════════════════════════════════
+let shData = [], shFilter = null, shEditId = null;
+
+buildFilter('sh-filter', f => { shFilter = f; renderShowcase(); });
+
+async function loadShowcase() {
+  const { data, error } = await db.from('showcase').select('*').order('sort_order');
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  shData = data;
+  renderShowcase();
+}
+
+function renderShowcase() {
+  const rows = shFilter ? shData.filter(r => r.project === shFilter) : shData;
+  document.getElementById('sh-count').textContent = `${rows.length} kart`;
+  const tbody = document.getElementById('sh-body');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">brak kart - dodaj pierwszy screenshot</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const tags = Array.isArray(r.tags) ? r.tags.join(', ') : '';
+    const imgPreview = r.image_url
+      ? `<a href="${esc(r.image_url)}" target="_blank" style="color:var(--amber);font-size:.68rem">podgląd ↗</a>`
+      : `<span style="color:var(--fg-mute)">-</span>`;
+    return `<tr>
+      <td style="color:var(--fg-dim)">${esc(r.project)}</td>
+      <td>${esc(r.title)}</td>
+      <td style="color:var(--fg-dim);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.description ?? '')}</td>
+      <td style="color:var(--fg-dim)">${esc(tags)}</td>
+      <td>${imgPreview}</td>
+      <td style="color:var(--fg-mute)">${r.sort_order}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="shEdit(${r.id})">edytuj</button>
+          <button class="btn btn-danger btn-sm" onclick="shDelete(${r.id})">usuń</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function shOpenModal(row = null) {
+  shEditId = row ? row.id : null;
+  document.getElementById('sh-modal-title').textContent = row ? 'edytuj kartę' : 'nowa karta';
+  document.getElementById('sh-project').value = row?.project    ?? 'PMS';
+  document.getElementById('sh-title').value   = row?.title      ?? '';
+  document.getElementById('sh-desc').value    = row?.description ?? '';
+  document.getElementById('sh-image').value   = row?.image_url  ?? '';
+  document.getElementById('sh-tags').value    = Array.isArray(row?.tags) ? row.tags.join(', ') : '';
+  document.getElementById('sh-sort').value    = row?.sort_order ?? '';
+  openModal('sh-modal');
+}
+
+window.shEdit = id => shOpenModal(shData.find(r => r.id === id));
+document.getElementById('sh-add-btn').addEventListener('click', () => shOpenModal());
+
+document.getElementById('sh-save-btn').addEventListener('click', async () => {
+  const title = document.getElementById('sh-title').value.trim();
+  if (!title) { toast('Wpisz tytuł', 'err'); return; }
+  const tagsRaw = document.getElementById('sh-tags').value;
+  const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+  const payload = {
+    project:     document.getElementById('sh-project').value,
+    title,
+    description: document.getElementById('sh-desc').value.trim() || null,
+    image_url:   document.getElementById('sh-image').value.trim() || null,
+    tags,
+    sort_order:  parseInt(document.getElementById('sh-sort').value || '0', 10),
+  };
+  const btn = document.getElementById('sh-save-btn');
+  btn.textContent = 'zapisywanie…'; btn.disabled = true;
+  let error;
+  if (shEditId) {
+    ({ error } = await db.from('showcase').update(payload).eq('id', shEditId));
+  } else {
+    ({ error } = await db.from('showcase').insert(payload));
+  }
+  btn.textContent = 'zapisz'; btn.disabled = false;
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast(shEditId ? 'Karta zaktualizowana ✓' : 'Karta dodana ✓');
+  closeModal('sh-modal');
+  loadShowcase();
+});
+
+window.shDelete = id => confirmDelete(async () => {
+  const { error } = await db.from('showcase').delete().eq('id', id);
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast('Karta usunięta'); loadShowcase();
 });
 
 

@@ -1,13 +1,120 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
-    <!--site-head-->
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>r4dzioo - roblox dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- MATRIX BG — full page, left column only via clip in CSS -->
+  <canvas id="matrix-canvas-left"></canvas>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar" id="statusbar">
+    <span class="sb-left">
+      <span class="sb-bracket">[</span>r4dzioo.pl<span class="sb-bracket">]</span>
+      <span class="sb-path"> ~/portfolio</span>
+      <span class="sb-git"> git:<span class="sb-branch">(main)</span> <span class="sb-ok">✓</span></span>
+    </span>
+    <span class="sb-right" id="sb-time"></span>
+  </div>
+
+  <!-- MAIN SPLIT LAYOUT -->
+  <main class="split">
+
+    <!-- LEFT COLUMN: bio -->
+    <section class="col-left">
+      <div class="left-inner">
+
+        <!-- Avatar ring -->
+        <div class="avatar-wrap">
+          <svg class="ring-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <circle class="ring-outer" cx="60" cy="60" r="54" />
+            <circle class="ring-inner" cx="60" cy="60" r="46" />
+          </svg>
+          <img class="avatar-photo" src="profilowe.jpg" alt="r4dzioo" />
+        </div>
+
+        <!-- Name & role -->
+        <h1 class="name">
+          <span class="bracket-dim">[</span>r4dzioo<span class="bracket-dim">]</span>
+        </h1>
+        <p class="role">
+          <span class="role-prefix">$ whoami › </span>
+          <span class="role-text" id="role-text"></span><span class="cursor-inline" id="role-cursor">█</span>
+        </p>
+
+        <!-- Bio -->
+        <p class="bio">
+          Building worlds inside Roblox — maps, vehicles, and the systems that hold them together. Open to collabs.
+        </p>
+
+        <!-- Projects -->
+        <div class="section-label">projects/</div>
+        <ul class="projects">
+          <li class="project-item">
+            <span class="proj-name">PMS</span>
+            <span class="proj-desc">// project mazovia south</span>
+          </li>
+          <li class="project-item">
+            <span class="proj-name">Project: Czech Republic</span>
+            <span class="proj-desc">// large-scale map recreation</span>
+          </li>
+        </ul>
+
+        <!-- Tech -->
+        <div class="section-label">tech/</div>
+        <div class="tags">
+          <span class="tag">Roblox Studio</span>
+          <span class="tag">Map Design</span>
+          <span class="tag">Vehicle Imports</span>
+          <span class="tag">Terrain</span>
+        </div>
+
+        <!-- Social links -->
+        <nav class="socials">
+          <a class="social-link" href="https://github.com/r4dzioo" target="_blank" rel="noopener">
+            <span class="sl-icon">⬡</span> github
+          </a>
+          <a class="social-link" href="https://youtube.com/@radzio00" target="_blank" rel="noopener">
+            <span class="sl-icon">⬡</span> youtube
+          </a>
+          <a class="social-link" href="mailto:kontakt@r4dzioo.pl">
+            <span class="sl-icon">⬡</span> email
+          </a>
+        </nav>
+
+        <!-- Visit counter -->
+        <div class="counter-wrap">
+          <span class="counter-label">visits</span>
+          <span class="counter-val" id="counter-val">----</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: terminal -->
+    <section class="col-right">
+      <canvas id="matrix-canvas"></canvas>
+
+      <div class="terminal-wrap">
+        <div class="term-titlebar">
+          <span class="term-dot dot-red"></span>
+          <span class="term-dot dot-yellow"></span>
+          <span class="term-dot dot-green"></span>
+          <span class="term-title">r4dzioo@dev ~ bash</span>
+        </div>
+        <div class="term-body" id="term-body"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
 </html>

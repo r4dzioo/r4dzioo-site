@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>r4dzioo - devlog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+/* ── TOKENS ─────────────────────────────────────── */
+:root {
+  --bg:          #0a0700;
+  --amber:       #ff9f0a;
+  --amber-mid:   #cc7a00;
+  --amber-dim:   #7a4a00;
+  --amber-faint: #2a1a00;
+  --text:        #d48a20;
+  --text-dim:    #8a6a30;
+  --text-faint:  #3a2a10;
+  --sb-h:        28px;
+  --font:        'JetBrains Mono', monospace;
+  --green:       #4a9a50;
+  --yellow:      #e0b030;
+  --blue:        #4a80c0;
+  --red:         #c05050;
+  --purple:      #9070c0;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+  pointer-events: none; z-index: 999;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.65) 100%);
+  pointer-events: none; z-index: 998;
+}
+
+/* ── MATRIX BG ───────────────────────────────────── */
+#matrix-bg {
+  position: fixed; inset: 0;
+  opacity: 0.06; pointer-events: none; z-index: 0;
+}
+
+/* ── STATUSBAR ───────────────────────────────────── */
+.statusbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--sb-h);
+  background: var(--amber-faint);
+  border-bottom: 1px solid var(--amber-dim);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; font-size: 11.5px; color: var(--text-dim);
+  z-index: 100; letter-spacing: 0.03em;
+  gap: 12px;
+}
+.sb-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sb-back {
+  color: var(--amber-dim); text-decoration: none;
+  transition: color 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.sb-back:hover { color: var(--amber); }
+.sb-crumb { color: var(--text-dim); white-space: nowrap; }
+.sb-crumb .dim   { color: var(--text-faint); }
+.sb-crumb .path  { color: var(--text-dim); }
+.sb-crumb .branch{ color: var(--amber); }
+.sb-crumb .ok    { color: var(--green); }
+.sb-right { color: var(--amber); font-size: 11.5px; white-space: nowrap; flex-shrink: 0; }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.page {
+  position: relative; z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: calc(var(--sb-h) + 40px) 28px 64px;
+}
+
+/* ── PAGE HEADER ─────────────────────────────────── */
+.page-header { margin-bottom: 36px; }
+.page-title {
+  font-size: 22px; font-weight: 700;
+  color: var(--amber);
+  text-shadow: 0 0 24px rgba(255,159,10,0.22);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.page-title .dim { color: var(--amber-dim); }
+.page-sub {
+  font-size: 11px; color: var(--text-dim);
+  margin-top: 7px; line-height: 1.5;
+}
+.page-sub a {
+  color: var(--amber-dim); text-decoration: none; transition: color 0.15s;
+}
+.page-sub a:hover { color: var(--amber); }
+
+/* ── CONTROLS ROW ────────────────────────────────── */
+.controls { margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
+
+.filter-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.filter-label {
+  font-size: 10px; color: var(--amber-dim);
+  letter-spacing: 0.08em; white-space: nowrap;
+  min-width: 44px;
+}
+.filter-btn {
+  background: none; border: 1px solid var(--amber-faint);
+  font-family: var(--font); font-size: 10.5px; color: var(--text-dim);
+  padding: 2px 9px; cursor: pointer; transition: all 0.12s;
+  letter-spacing: 0.04em; line-height: 1.6;
+}
+.filter-btn:hover  { border-color: var(--amber-dim); color: var(--text); }
+.filter-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(255,159,10,0.06); }
+
+/* ── SEARCH ──────────────────────────────────────── */
+.search-row { display: flex; align-items: center; gap: 8px; }
+.search-label { font-size: 10px; color: var(--amber-dim); letter-spacing: 0.08em; min-width: 44px; }
+.search-inner { position: relative; flex: 1; max-width: 320px; }
+.search-prefix {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  color: var(--amber-dim); font-size: 11px; pointer-events: none;
+}
+#search-input {
+  width: 100%;
+  background: rgba(42,26,0,0.6);
+  border: 1px solid var(--amber-dim);
+  color: var(--text);
+  font-family: var(--font); font-size: 11.5px;
+  padding: 4px 10px 4px 24px;
+  outline: none; transition: border-color 0.15s;
+}
+#search-input::placeholder { color: var(--text-faint); }
+#search-input:focus { border-color: var(--amber); }
+
+/* ── ENTRIES META ────────────────────────────────── */
+.entries-meta {
+  font-size: 10px; color: var(--text-faint);
+  margin-bottom: 16px; letter-spacing: 0.05em;
+}
+.entries-meta::before { content: '// '; color: var(--amber-dim); }
+
+/* ── ENTRIES LIST ────────────────────────────────── */
+.entries-list { display: flex; flex-direction: column; }
+
+/* ── SINGLE ENTRY ────────────────────────────────── */
+.entry {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  border-top: 1px solid var(--amber-faint);
+}
+.entry:last-child { border-bottom: 1px solid var(--amber-faint); }
+
+/* left column */
+.entry-meta {
+  padding: 18px 16px 18px 0;
+  display: flex; flex-direction: column; gap: 6px;
+  border-right: 1px solid var(--amber-faint);
+}
+.entry-date {
+  font-size: 10.5px; color: var(--amber-dim);
+  letter-spacing: 0.04em; white-space: nowrap;
+}
+.badge {
+  font-size: 9.5px; padding: 2px 7px;
+  border: 1px solid; display: inline-block;
+  letter-spacing: 0.02em; width: fit-content;
+}
+.badge-pms     { color: var(--amber);    border-color: var(--amber-dim);    background: rgba(255,159,10,0.07); }
+.badge-cz      { color: #6ab0d0;         border-color: #2a5a70;             background: rgba(106,176,208,0.07); }
+.badge-general { color: var(--text-dim); border-color: var(--text-faint);   background: transparent; }
+
+.entry-tag {
+  font-size: 9px; padding: 1px 6px;
+  border: 1px solid; display: inline-block;
+  letter-spacing: 0.03em; width: fit-content;
+}
+.tag-feat   { color: var(--green);  border-color: rgba(74,154,80,0.45);  background: rgba(74,154,80,0.07); }
+.tag-fix    { color: var(--red);    border-color: rgba(192,80,80,0.45);  background: rgba(192,80,80,0.07); }
+.tag-wip    { color: var(--yellow); border-color: rgba(224,176,48,0.45); background: rgba(224,176,48,0.07); }
+.tag-init   { color: var(--blue);   border-color: rgba(74,128,192,0.45); background: rgba(74,128,192,0.07); }
+.tag-design { color: var(--purple); border-color: rgba(144,112,192,0.45);background: rgba(144,112,192,0.07); }
+
+/* right column */
+.entry-body {
+  padding: 18px 0 18px 20px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.entry-title {
+  font-size: 13px; font-weight: 500; color: var(--text);
+  line-height: 1.4;
+}
+.entry-desc {
+  font-size: 11.5px; color: var(--text-dim); line-height: 1.7;
+}
+.entry-bullets {
+  padding-left: 14px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.entry-bullets li {
+  font-size: 11px; color: var(--text-dim); line-height: 1.65;
+}
+.entry-bullets li::marker { color: var(--amber-dim); }
+
+/* ── EMPTY / LOADING ─────────────────────────────── */
+.state-msg {
+  padding: 52px 0; text-align: center;
+  color: var(--text-faint); font-size: 11.5px; letter-spacing: 0.05em;
+}
+.state-icon { display: block; margin-bottom: 10px; font-size: 18px; opacity: 0.35; }
+
+/* ── PAGINATION ──────────────────────────────────── */
+.pagination {
+  display: flex; justify-content: center; gap: 6px;
+  margin-top: 40px; flex-wrap: wrap;
+}
+.page-btn {
+  background: none; border: 1px solid var(--amber-faint);
+  font-family: var(--font); font-size: 10.5px; color: var(--text-dim);
+  padding: 3px 11px; cursor: pointer; transition: all 0.12s;
+}
+.page-btn:hover  { border-color: var(--amber-dim); color: var(--text); }
+.page-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(255,159,10,0.06); }
+.page-btn:disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 600px) {
+  .page { padding-left: 16px; padding-right: 16px; }
+  .entry { grid-template-columns: 1fr; }
+  .entry-meta {
+    flex-direction: row; align-items: center;
+    gap: 8px; flex-wrap: wrap;
+    padding: 12px 0 6px; border-right: none;
+    border-bottom: 1px solid var(--amber-faint);
+  }
+  .entry-body { padding: 10px 0 16px; }
+  .search-inner { max-width: 100%; }
+  .filter-label { min-width: 36px; }
+}
+  </style>
+</head>
+<body>
+
+<canvas id="matrix-bg"></canvas>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <span class="sb-left">
+    <a href="index.html" class="sb-back">← back</a>
+    <span class="sb-crumb">
+      <span class="dim">[</span>r4dzioo.pl<span class="dim">]</span>
+      <span class="path"> ~/devlog</span>
+      <span class="dim"> git:</span><span class="branch">(main)</span> <span class="ok">✓</span>
+    </span>
+  </span>
+  <span id="sb-time" class="sb-right"></span>
+</div>
+
+<!-- PAGE -->
+<main class="page">
+
+  <div class="page-header">
+    <h1 class="page-title"><span class="dim">~/</span>devlog</h1>
+    <p class="page-sub">
+      dev notes, progress updates &amp; build logs
+      &nbsp;·&nbsp; <a href="projects.html">→ projects</a>
+      &nbsp;·&nbsp; <a href="index.html">→ home</a>
+    </p>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="filter-row">
+      <span class="filter-label">project/</span>
+      <button class="filter-btn active" data-project="">all</button>
+      <button class="filter-btn" data-project="PMS">PMS</button>
+      <button class="filter-btn" data-project="Project: Czech Republic">czech rep.</button>
+      <button class="filter-btn" data-project="general">general</button>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">type/</span>
+      <button class="filter-btn active" data-type="">all</button>
+      <button class="filter-btn" data-type="feat">feat</button>
+      <button class="filter-btn" data-type="fix">fix</button>
+      <button class="filter-btn" data-type="wip">wip</button>
+      <button class="filter-btn" data-type="init">init</button>
+      <button class="filter-btn" data-type="design">design</button>
+    </div>
+    <div class="search-row">
+      <span class="filter-label">grep/</span>
+      <div class="search-inner">
+        <span class="search-prefix">$</span>
+        <input type="text" id="search-input" placeholder="szukaj wpisów…" autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <div class="entries-meta" id="entries-meta">ładowanie…</div>
+
+  <div class="entries-list" id="entries-list">
+    <div class="state-msg">
+      <span class="state-icon">⌛</span>ładowanie wpisów…
+    </div>
+  </div>
+
+  <div class="pagination" id="pagination"></div>
+
+</main>
+
+<script>
+/* ── SUPABASE ──────────────────────────────────── */
+const SUPABASE_URL = 'https://xhcnietczjdggwakqtip.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY25pZXRjempkZ2d3YWtxdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NzU2OTEsImV4cCI6MjEwODM1MTY5MX0.YeCJs2U0iE9MPII6tL5qdalhzxZAtjFU8DGKoIWIi38';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── CLOCK ─────────────────────────────────────── */
+(function () {
+  const el = document.getElementById('sb-time');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const pad = n => String(n).padStart(2, '0');
+  function tick() {
+    const now = new Date();
+    el.textContent = window.innerWidth <= 600
+      ? `${pad(now.getHours())}:${pad(now.getMinutes())}`
+      : `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ── MATRIX ─────────────────────────────────────── */
+(function () {
+  const canvas = document.getElementById('matrix-bg');
+  const ctx    = canvas.getContext('2d');
+  const chars  = 'アイウエオカキクケコ0123456789ABCDEF';
+  let drops    = [];
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    drops = Array.from({ length: Math.floor(canvas.width / 14) }, () => Math.random() * -50);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  setInterval(() => {
+    ctx.fillStyle = 'rgba(10,7,0,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#ff9f0a';
+    ctx.font = '12px monospace';
+    drops.forEach((y, i) => {
+      ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 14, y * 14);
+      if (y * 14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += 0.4;
+    });
+  }, 60);
+})();
+
+/* ── HELPERS ─────────────────────────────────────── */
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00');
+  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()}`;
+}
+function projectBadge(p) {
+  const cls = p === 'PMS' ? 'badge-pms' : p === 'Project: Czech Republic' ? 'badge-cz' : 'badge-general';
+  const label = p === 'Project: Czech Republic' ? 'Czech Republic' : p;
+  return `<span class="badge ${cls}">${esc(label)}</span>`;
+}
+function typeTag(t) {
+  return `<span class="entry-tag tag-${esc(t)}">${esc(t)}</span>`;
+}
+
+/* ── STATE ─────────────────────────────────────── */
+let allEntries  = [];
+let activeProject = '';
+let activeType    = '';
+let searchQuery   = '';
+let currentPage   = 1;
+const PER_PAGE    = 15;
+
+/* ── LOAD ──────────────────────────────────────── */
+async function loadEntries() {
+  const { data, error } = await db
+    .from('devlog').select('*')
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('entries-list').innerHTML =
+      `<div class="state-msg"><span class="state-icon">✕</span>błąd: ${esc(error.message)}</div>`;
+    return;
+  }
+  allEntries = data || [];
+  render();
+}
+
+/* ── FILTER ─────────────────────────────────────── */
+function filtered() {
+  return allEntries.filter(e => {
+    if (activeProject && e.project !== activeProject) return false;
+    if (activeType    && e.type    !== activeType)    return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const h = [e.title, e.description, e.project, e.type, ...(Array.isArray(e.bullets) ? e.bullets : [])].join(' ').toLowerCase();
+      if (!h.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+/* ── RENDER ─────────────────────────────────────── */
+function render() {
+  const rows = filtered();
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  if (currentPage > totalPages) currentPage = 1;
+  const slice = rows.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+
+  /* meta */
+  const suffix = total === 1 ? '' : total < 5 ? 'y' : 'ów';
+  let metaTxt = `${total} wpis${suffix}`;
+  if (activeProject) metaTxt += ` · ${activeProject}`;
+  if (activeType)    metaTxt += ` · ${activeType}`;
+  if (searchQuery)   metaTxt += ` · "${searchQuery}"`;
+  document.getElementById('entries-meta').textContent = metaTxt;
+
+  /* list */
+  const list = document.getElementById('entries-list');
+  if (!slice.length) {
+    list.innerHTML = `<div class="state-msg"><span class="state-icon">○</span>brak wyników${searchQuery ? ` dla "${searchQuery}"` : ''}</div>`;
+  } else {
+    list.innerHTML = slice.map(e => {
+      const desc = e.description
+        ? `<p class="entry-desc">${esc(e.description)}</p>` : '';
+      const bullets = Array.isArray(e.bullets) && e.bullets.length
+        ? `<ul class="entry-bullets">${e.bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : '';
+      return `<div class="entry">
+        <div class="entry-meta">
+          <span class="entry-date">${fmtDate(e.date)}</span>
+          ${projectBadge(e.project)}
+          ${typeTag(e.type)}
+        </div>
+        <div class="entry-body">
+          <div class="entry-title">${esc(e.title)}</div>
+          ${desc}${bullets}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  /* pagination */
+  const pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>← prev</button>`;
+  for (let p = 1; p <= totalPages; p++)
+    html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>next →</button>`;
+  pag.innerHTML = html;
+}
+
+function goPage(p) { currentPage = p; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+/* ── EVENTS ─────────────────────────────────────── */
+document.querySelectorAll('[data-project]').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('[data-project]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeProject = btn.dataset.project; currentPage = 1; render();
+}));
+
+document.querySelectorAll('[data-type]').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeType = btn.dataset.type; currentPage = 1; render();
+}));
+
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { searchQuery = e.target.value.trim(); currentPage = 1; render(); }, 220);
+});
+
+loadEntries();
+</script>
+</body>
+</html>

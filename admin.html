@@ -327,6 +327,7 @@
     <button class="nav-tab" data-tab="tasks">status.tasks</button>
     <button class="nav-tab" data-tab="roadmap">roadmap</button>
     <button class="nav-tab" data-tab="showcase">showcase</button>
+    <button class="nav-tab" data-tab="devlog">devlog</button>
   </div>
 
   <div class="content">
@@ -421,6 +422,30 @@
           </tr>
         </thead>
         <tbody id="sh-body"></tbody>
+      </table>
+    </div>
+
+    <!-- ── DEVLOG TAB ── -->
+    <div id="tab-devlog" style="display:none">
+      <div class="sec-hdr">
+        <h2>devlog</h2>
+        <span class="count-badge" id="dl-count">0 wpisów</span>
+        <button class="btn btn-primary btn-sm" id="dl-add-btn">+ dodaj wpis</button>
+      </div>
+      <div class="filter-bar" id="dl-filter"></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>data</th>
+            <th>projekt</th>
+            <th>typ</th>
+            <th>tytuł</th>
+            <th>opis</th>
+            <th>bullet pts</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="dl-body"><tr><td colspan="7" style="padding:.8rem;color:var(--fg-mute);font-size:.75rem">ładowanie…</td></tr></tbody>
       </table>
     </div>
 
@@ -632,6 +657,59 @@
   </div>
 </div>
 
+<!-- DEVLOG MODAL -->
+<div class="modal-overlay" id="dl-modal">
+  <div class="modal">
+    <div class="modal-titlebar">
+      <span class="modal-title" id="dl-modal-title">nowy wpis devlog</span>
+      <button class="modal-close" data-close="dl-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="row2">
+        <div class="field">
+          <label>data</label>
+          <input type="date" id="dl-date" />
+        </div>
+        <div class="field">
+          <label>projekt</label>
+          <select id="dl-project">
+            <option value="PMS">PMS</option>
+            <option value="Project: Czech Republic">Project: Czech Republic</option>
+            <option value="general">general</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>typ</label>
+        <select id="dl-type">
+          <option value="feat">feat — nowa funkcja</option>
+          <option value="fix">fix — poprawka</option>
+          <option value="wip">wip — w trakcie</option>
+          <option value="init">init — inicjalizacja</option>
+          <option value="design">design — projekt / wizualny</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>tytuł</label>
+        <input type="text" id="dl-title" placeholder="krótki nagłówek wpisu…" />
+      </div>
+      <div class="field">
+        <label>opis</label>
+        <textarea id="dl-desc" rows="4" placeholder="szczegóły, co zostało zrobione…"></textarea>
+      </div>
+      <div class="field">
+        <label>bullet points <span style="color:var(--fg-mute)">(opcjonalne)</span></label>
+        <ul class="bullets-list" id="dl-bullets-list"></ul>
+        <button type="button" class="btn btn-ghost btn-sm" id="dl-add-bullet-btn">+ dodaj bullet</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="dl-modal">anuluj</button>
+      <button class="btn btn-primary" id="dl-save-btn">zapisz</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -723,7 +801,7 @@ function showApp(user) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('top-user').textContent = user.email;
-  loadChangelog(); loadTasks(); loadRoadmap(); loadShowcase();
+  loadChangelog(); loadTasks(); loadRoadmap(); loadShowcase(); loadDevlog();
 }
 
 // ── TABS ───────────────────────────────────────────
@@ -1128,6 +1206,116 @@ window.shDelete = id => confirmDelete(async () => {
   const { error } = await db.from('showcase').delete().eq('id', id);
   if (error) { toast('Błąd: ' + error.message, 'err'); return; }
   toast('Karta usunięta'); loadShowcase();
+});
+
+
+// ════════════════════════════════════════════════════
+//  DEVLOG
+// ════════════════════════════════════════════════════
+let dlData = [], dlFilter = null, dlEditId = null;
+
+buildFilter('dl-filter', f => { dlFilter = f; renderDevlog(); });
+
+async function loadDevlog() {
+  const { data, error } = await db.from('devlog').select('*').order('date', { ascending: false }).order('created_at', { ascending: false });
+  if (error) { toast('Błąd ładowania devlog: ' + error.message, 'err'); return; }
+  dlData = data;
+  renderDevlog();
+}
+
+function renderDevlog() {
+  const rows = dlFilter ? dlData.filter(r => r.project === dlFilter) : dlData;
+  document.getElementById('dl-count').textContent = `${rows.length} wpisów`;
+  const tbody = document.getElementById('dl-body');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">brak wpisów — dodaj pierwszy</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const bullets = Array.isArray(r.bullets) ? r.bullets.join(', ') : '';
+    return `<tr>
+      <td>${esc(r.date)}</td>
+      <td style="color:var(--fg-dim)">${esc(r.project)}</td>
+      <td><span class="tag-type tag-${esc(r.type)}">${esc(r.type)}</span></td>
+      <td>${esc(r.title)}</td>
+      <td style="color:var(--fg-dim);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.description)}">${esc(r.description ?? '')}</td>
+      <td style="color:var(--fg-mute);font-size:.68rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(bullets)}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="dlEdit(${r.id})">edytuj</button>
+          <button class="btn btn-danger btn-sm" onclick="dlDelete(${r.id})">usuń</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// Bullets for devlog
+let dlBulletCount = 0;
+function dlAddBullet(value = '') {
+  const li = document.createElement('li');
+  li.className = 'bullet-row';
+  const id = `dl-bullet-${dlBulletCount++}`;
+  li.innerHTML = `<input type="text" id="${id}" value="${esc(value)}" placeholder="bullet point…" />
+    <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('dl-bullets-list').appendChild(li);
+}
+document.getElementById('dl-add-bullet-btn').addEventListener('click', () => dlAddBullet());
+
+function getDlBullets() {
+  return Array.from(document.querySelectorAll('#dl-bullets-list .bullet-row input'))
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
+function dlOpenModal(row = null) {
+  dlEditId = row ? row.id : null;
+  document.getElementById('dl-modal-title').textContent = row ? 'edytuj wpis devlog' : 'nowy wpis devlog';
+  document.getElementById('dl-date').value    = row?.date    ?? new Date().toISOString().slice(0,10);
+  document.getElementById('dl-type').value    = row?.type    ?? 'feat';
+  document.getElementById('dl-project').value = row?.project ?? 'PMS';
+  document.getElementById('dl-title').value   = row?.title   ?? '';
+  document.getElementById('dl-desc').value    = row?.description ?? '';
+  document.getElementById('dl-bullets-list').innerHTML = '';
+  dlBulletCount = 0;
+  if (Array.isArray(row?.bullets)) row.bullets.forEach(dlAddBullet);
+  openModal('dl-modal');
+}
+
+window.dlEdit = id => dlOpenModal(dlData.find(r => r.id === id));
+document.getElementById('dl-add-btn').addEventListener('click', () => dlOpenModal());
+
+document.getElementById('dl-save-btn').addEventListener('click', async () => {
+  const payload = {
+    date:        document.getElementById('dl-date').value,
+    project:     document.getElementById('dl-project').value,
+    type:        document.getElementById('dl-type').value,
+    title:       document.getElementById('dl-title').value.trim(),
+    description: document.getElementById('dl-desc').value.trim(),
+    bullets:     getDlBullets(),
+  };
+  if (!payload.title || !payload.date) { toast('Wypełnij datę i tytuł', 'err'); return; }
+
+  const btn = document.getElementById('dl-save-btn');
+  btn.textContent = 'zapisywanie…'; btn.disabled = true;
+
+  let error;
+  if (dlEditId) {
+    ({ error } = await db.from('devlog').update(payload).eq('id', dlEditId));
+  } else {
+    ({ error } = await db.from('devlog').insert(payload));
+  }
+  btn.textContent = 'zapisz'; btn.disabled = false;
+
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast(dlEditId ? 'Wpis zaktualizowany ✓' : 'Wpis devlog dodany ✓');
+  closeModal('dl-modal');
+  loadDevlog();
+});
+
+window.dlDelete = id => confirmDelete(async () => {
+  const { error } = await db.from('devlog').delete().eq('id', id);
+  if (error) { toast('Błąd: ' + error.message, 'err'); return; }
+  toast('Wpis usunięty'); loadDevlog();
 });
 
 

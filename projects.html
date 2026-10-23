@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
 /* ── TOKENS ─────────────────────────────────────── */
 :root {
@@ -86,10 +87,7 @@ body::after {
   padding-left: 28px;
   padding-right: 28px;
 }
-
-.page-header {
-  margin-bottom: 28px;
-}
+.page-header { margin-bottom: 28px; }
 .page-title {
   font-size: 26px; font-weight: 700;
   color: var(--amber);
@@ -97,10 +95,7 @@ body::after {
   letter-spacing: -0.01em;
 }
 .page-title .dim { color: var(--amber-dim); }
-.page-sub {
-  font-size: 11.5px; color: var(--text-dim);
-  margin-top: 5px;
-}
+.page-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 5px; }
 
 /* ── TABS ────────────────────────────────────────── */
 .tabs {
@@ -119,10 +114,7 @@ body::after {
   letter-spacing: 0.04em;
 }
 .tab-btn:hover { color: var(--amber-mid); }
-.tab-btn.active {
-  color: var(--amber);
-  border-bottom-color: var(--amber);
-}
+.tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
@@ -138,99 +130,68 @@ body::after {
   padding: 16px 0;
   display: flex; flex-direction: column; gap: 4px;
 }
-.cl-date {
-  font-size: 11px; color: var(--amber-dim);
-  white-space: nowrap;
-}
+.cl-date { font-size: 11px; color: var(--amber-dim); white-space: nowrap; }
 .cl-project-badge {
-  font-size: 10px;
-  padding: 2px 7px;
-  border-radius: 2px;
-  border: 1px solid;
-  display: inline-block;
-  width: fit-content;
+  font-size: 10px; padding: 2px 7px; border-radius: 2px;
+  border: 1px solid; display: inline-block; width: fit-content;
 }
-.badge-pms      { color: var(--amber); border-color: var(--amber-dim); background: var(--amber-faint); }
-.badge-cz       { color: #6ab0d0; border-color: #2a5a70; background: #0a1a20; }
-.badge-general  { color: var(--text-dim); border-color: var(--text-faint); background: transparent; }
+.badge-pms     { color: var(--amber); border-color: var(--amber-dim); background: var(--amber-faint); }
+.badge-cz      { color: #6ab0d0; border-color: #2a5a70; background: #0a1a20; }
+.badge-general { color: var(--text-dim); border-color: var(--text-faint); background: transparent; }
 
 .cl-body { padding: 16px 0; }
 .cl-title {
   font-size: 13px; font-weight: 500;
   color: var(--text); margin-bottom: 5px;
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .cl-type {
-  font-size: 10px;
-  padding: 1px 6px; border-radius: 2px;
-  font-weight: 400;
+  font-size: 10px; padding: 1px 6px; border-radius: 2px; font-weight: 400;
 }
-.type-feat { background: rgba(74,154,80,0.15); color: var(--green); border: 1px solid rgba(74,154,80,0.3); }
-.type-fix  { background: rgba(192,80,80,0.15); color: var(--red);   border: 1px solid rgba(192,80,80,0.3); }
+.type-feat { background: rgba(74,154,80,0.15);  color: var(--green);  border: 1px solid rgba(74,154,80,0.3); }
+.type-fix  { background: rgba(192,80,80,0.15);  color: var(--red);    border: 1px solid rgba(192,80,80,0.3); }
 .type-wip  { background: rgba(224,176,48,0.15); color: var(--yellow); border: 1px solid rgba(224,176,48,0.3); }
-.type-init { background: rgba(74,128,192,0.15); color: var(--blue);  border: 1px solid rgba(74,128,192,0.3); }
+.type-init { background: rgba(74,128,192,0.15); color: var(--blue);   border: 1px solid rgba(74,128,192,0.3); }
 
-.cl-desc {
-  font-size: 11.5px; color: var(--text-dim);
-  line-height: 1.65;
-}
+.cl-desc { font-size: 11.5px; color: var(--text-dim); line-height: 1.65; }
 .cl-desc ul { padding-left: 16px; margin-top: 4px; }
 .cl-desc li { margin-bottom: 2px; }
 .cl-desc li::marker { color: var(--amber-dim); }
 
 /* ── STATUS ──────────────────────────────────────── */
-.status-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
+.status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .status-card {
-  border: 1px solid var(--amber-dim);
-  border-radius: 3px;
-  background: rgba(10,7,0,0.6);
-  overflow: hidden;
+  border: 1px solid var(--amber-dim); border-radius: 3px;
+  background: rgba(10,7,0,0.6); overflow: hidden;
 }
 .sc-header {
-  padding: 12px 16px;
-  background: var(--amber-faint);
+  padding: 12px 16px; background: var(--amber-faint);
   border-bottom: 1px solid var(--amber-dim);
   display: flex; align-items: center; justify-content: space-between;
 }
-.sc-name {
-  font-size: 13px; font-weight: 700;
-  color: var(--amber);
-}
-.sc-pct {
-  font-size: 11px; color: var(--text-dim);
-}
-.sc-bar-wrap {
-  height: 3px; background: var(--amber-faint);
-}
+.sc-name { font-size: 13px; font-weight: 700; color: var(--amber); }
+.sc-pct  { font-size: 11px; color: var(--text-dim); }
+.sc-bar-wrap { height: 3px; background: var(--amber-faint); }
 .sc-bar {
   height: 100%; background: var(--amber);
   box-shadow: 0 0 8px rgba(255,159,10,0.4);
   transition: width 1s ease;
 }
 .sc-tasks { padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
-.sc-task {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 11.5px;
-}
+.sc-task  { display: flex; align-items: center; gap: 8px; font-size: 11.5px; }
 .sc-task-icon {
-  width: 14px; height: 14px;
-  border-radius: 2px;
+  width: 14px; height: 14px; border-radius: 2px;
   display: flex; align-items: center; justify-content: center;
   font-size: 9px; flex-shrink: 0;
 }
-.icon-done  { background: rgba(74,154,80,0.2);  color: var(--green);  border: 1px solid rgba(74,154,80,0.4); }
-.icon-wip   { background: rgba(224,176,48,0.2); color: var(--yellow); border: 1px solid rgba(224,176,48,0.4); }
-.icon-todo  { background: rgba(122,74,0,0.2);   color: var(--amber-dim); border: 1px solid var(--amber-faint); }
+.icon-done { background: rgba(74,154,80,0.2);  color: var(--green);     border: 1px solid rgba(74,154,80,0.4); }
+.icon-wip  { background: rgba(224,176,48,0.2); color: var(--yellow);    border: 1px solid rgba(224,176,48,0.4); }
+.icon-todo { background: rgba(122,74,0,0.2);   color: var(--amber-dim); border: 1px solid var(--amber-faint); }
 .sc-task-text { color: var(--text-dim); }
 .sc-task-text.done { color: var(--text-faint); text-decoration: line-through; }
 .sc-task-text.wip  { color: var(--text); }
 .sc-footer {
-  padding: 8px 16px;
-  border-top: 1px solid var(--amber-faint);
+  padding: 8px 16px; border-top: 1px solid var(--amber-faint);
   font-size: 10.5px; color: var(--text-faint);
   display: flex; justify-content: space-between;
 }
@@ -238,121 +199,77 @@ body::after {
   display: inline-block; width: 6px; height: 6px;
   border-radius: 50%; margin-right: 5px;
 }
-.dot-active   { background: var(--green);  box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
-.dot-paused   { background: var(--yellow); }
-.dot-planned  { background: var(--blue); }
+.dot-active  { background: var(--green);  box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+.dot-paused  { background: var(--yellow); }
+.dot-planned { background: var(--blue); }
 @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
 
 /* ── SHOWCASE ─────────────────────────────────────── */
-.showcase-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 14px;
-}
+.showcase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .sh-card {
-  border: 1px solid var(--amber-dim);
-  border-radius: 3px;
-  overflow: hidden;
-  background: rgba(10,7,0,0.6);
+  border: 1px solid var(--amber-dim); border-radius: 3px;
+  overflow: hidden; background: rgba(10,7,0,0.6);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.sh-card:hover {
-  border-color: var(--amber);
-  box-shadow: 0 0 20px rgba(255,159,10,0.12);
-}
+.sh-card:hover { border-color: var(--amber); box-shadow: 0 0 20px rgba(255,159,10,0.12); }
 .sh-thumb {
-  width: 100%; aspect-ratio: 16/9;
-  background: var(--amber-faint);
+  width: 100%; aspect-ratio: 16/9; background: var(--amber-faint);
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; color: var(--text-faint);
   position: relative; overflow: hidden;
 }
-.sh-thumb-placeholder {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 8px;
-  color: var(--amber-dim);
-}
-.sh-thumb-icon { font-size: 28px; opacity: 0.4; }
+.sh-thumb-placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--amber-dim); }
+.sh-thumb-icon  { font-size: 28px; opacity: 0.4; }
 .sh-thumb-label { font-size: 10px; letter-spacing: 0.08em; }
-/* If you add real screenshots: <img class="sh-img" src="…"> */
-.sh-img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-}
+.sh-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sh-meta { padding: 12px 14px; }
-.sh-title {
-  font-size: 12.5px; font-weight: 500; color: var(--text);
-  margin-bottom: 4px;
-}
-.sh-desc { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+.sh-title { font-size: 12.5px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.sh-desc  { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
 .sh-tag-row { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-.sh-tag {
-  font-size: 10px; color: var(--amber-dim);
-  border: 1px solid var(--amber-faint);
-  padding: 1px 7px; border-radius: 2px;
-}
+.sh-tag { font-size: 10px; color: var(--amber-dim); border: 1px solid var(--amber-faint); padding: 1px 7px; border-radius: 2px; }
 .sh-add-hint {
-  border: 1px dashed var(--amber-faint);
-  border-radius: 3px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 6px; padding: 32px 16px;
-  color: var(--text-faint); font-size: 11px;
-  text-align: center;
+  border: 1px dashed var(--amber-faint); border-radius: 3px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 32px 16px; color: var(--text-faint); font-size: 11px; text-align: center;
 }
 
 /* ── ROADMAP ─────────────────────────────────────── */
-.roadmap-cols {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
+.roadmap-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .rm-col-header {
-  font-size: 11px; color: var(--text-dim);
-  letter-spacing: 0.1em; text-transform: uppercase;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--amber-faint);
+  font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--amber-faint);
   display: flex; align-items: center; gap: 7px;
 }
-.rm-col-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-}
+.rm-col-dot { width: 7px; height: 7px; border-radius: 50%; }
 .col-todo     .rm-col-dot { background: var(--amber-dim); }
 .col-doing    .rm-col-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: pulse 2s infinite; }
 .col-done-col .rm-col-dot { background: var(--green); }
-
 .rm-cards { display: flex; flex-direction: column; gap: 8px; }
 .rm-card {
-  border: 1px solid var(--amber-faint);
-  border-radius: 3px;
-  padding: 10px 12px;
-  background: rgba(10,7,0,0.5);
+  border: 1px solid var(--amber-faint); border-radius: 3px;
+  padding: 10px 12px; background: rgba(10,7,0,0.5);
   transition: border-color 0.15s;
 }
 .rm-card:hover { border-color: var(--amber-dim); }
 .rm-card-title { font-size: 12px; color: var(--text); font-weight: 500; margin-bottom: 3px; }
 .rm-card-proj  { font-size: 10px; color: var(--text-faint); }
 .rm-card-desc  { font-size: 11px; color: var(--text-dim); margin-top: 5px; line-height: 1.55; }
-
-.col-doing .rm-card  { border-color: rgba(224,176,48,0.25); }
+.col-doing    .rm-card { border-color: rgba(224,176,48,0.25); }
 .col-done-col .rm-card { opacity: 0.6; }
 
-/* ── EMPTY STATE ─────────────────────────────────── */
-.empty {
-  padding: 32px 0; text-align: center;
-  color: var(--text-faint); font-size: 12px;
-}
+/* ── EMPTY / LOADING ─────────────────────────────── */
+.empty   { padding: 32px 0; text-align: center; color: var(--text-faint); font-size: 12px; }
+.loading { padding: 32px 0; text-align: center; color: var(--text-faint); font-size: 12px; }
+.err     { padding: 16px 0; color: var(--red); font-size: 12px; }
 
 /* ── MOBILE ──────────────────────────────────────── */
 @media (max-width: 640px) {
-  .status-grid   { grid-template-columns: 1fr; }
-  .roadmap-cols  { grid-template-columns: 1fr; }
-  .cl-entry      { grid-template-columns: 1fr; }
-  .cl-date-col   { padding-bottom: 0; flex-direction: row; align-items: center; gap: 8px; }
-  .cl-body       { padding-top: 6px; }
-  .tab-btn       { padding: 8px 12px; font-size: 11px; }
+  .status-grid  { grid-template-columns: 1fr; }
+  .roadmap-cols { grid-template-columns: 1fr; }
+  .cl-entry     { grid-template-columns: 1fr; }
+  .cl-date-col  { padding-bottom: 0; flex-direction: row; align-items: center; gap: 8px; }
+  .cl-body      { padding-top: 6px; }
+  .tab-btn      { padding: 8px 12px; font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .dot-active, .col-doing .rm-col-dot { animation: none; }
@@ -365,9 +282,7 @@ body::after {
 
 <!-- STATUS BAR -->
 <div class="statusbar">
-  <a class="sb-back" href="index.html">
-    ← <span class="sb-path">~/portfolio</span>
-  </a>
+  <a class="sb-back" href="index.html">← <span class="sb-path">~/portfolio</span></a>
   <span style="color:var(--amber-dim)">
     <span style="color:var(--amber-dim)">[</span>r4dzioo.dev<span style="color:var(--amber-dim)">]</span>
     <span class="sb-path"> ~/portfolio/projects</span>
@@ -389,149 +304,23 @@ body::after {
     <button class="tab-btn" data-tab="roadmap">roadmap</button>
   </div>
 
-  <!-- ── CHANGELOG ── -->
+  <!-- ── CHANGELOG — ładowane z Supabase ── -->
   <div class="tab-panel active" id="tab-changelog">
-
-    <div class="cl-entry">
-      <div class="cl-date-col">
-        <span class="cl-date">Oct 2026</span>
-        <span class="cl-project-badge badge-cz">Czech Republic</span>
-      </div>
-      <div class="cl-body">
-        <div class="cl-title">Highway network — D1 corridor <span class="cl-type type-wip">wip</span></div>
-        <div class="cl-desc">
-          D1 motorway from Prague to Brno roughed in. Terrain sculpting in progress along the route.
-          <ul><li>Elevation data referenced from real topographic maps</li><li>Road surface materials assigned</li></ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="cl-entry">
-      <div class="cl-date-col">
-        <span class="cl-date">Sep 2026</span>
-        <span class="cl-project-badge badge-pms">PMS</span>
-      </div>
-      <div class="cl-body">
-        <div class="cl-title">v2.0 — full rewrite <span class="cl-type type-feat">feat</span></div>
-        <div class="cl-desc">
-          Complete system overhaul. New UI, improved unit management, profile support added.
-          <ul><li>Multi-profile support for different server configs</li><li>Action history with per-day grouping</li><li>Vehicle import system redesigned</li></ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="cl-entry">
-      <div class="cl-date-col">
-        <span class="cl-date">Aug 2026</span>
-        <span class="cl-project-badge badge-cz">Czech Republic</span>
-      </div>
-      <div class="cl-body">
-        <div class="cl-title">Prague city center blocked out <span class="cl-type type-feat">feat</span></div>
-        <div class="cl-desc">
-          Old Town and New Town district layouts placed. Building volumes roughed in for major landmarks.
-        </div>
-      </div>
-    </div>
-
-    <div class="cl-entry">
-      <div class="cl-date-col">
-        <span class="cl-date">Jul 2026</span>
-        <span class="cl-project-badge badge-pms">PMS</span>
-      </div>
-      <div class="cl-body">
-        <div class="cl-title">Vehicle import bugs patched <span class="cl-type type-fix">fix</span></div>
-        <div class="cl-desc">
-          Fixed duplicate entry on rapid re-import. Status sync issue on vehicle reassignment resolved.
-        </div>
-      </div>
-    </div>
-
-    <div class="cl-entry">
-      <div class="cl-date-col">
-        <span class="cl-date">May 2026</span>
-        <span class="cl-project-badge badge-cz">Czech Republic</span>
-      </div>
-      <div class="cl-body">
-        <div class="cl-title">Project kickoff <span class="cl-type type-init">init</span></div>
-        <div class="cl-desc">
-          Map boundaries set, reference data collected, initial terrain mesh generated.
-        </div>
-      </div>
-    </div>
-
-    <div class="cl-entry">
-      <div class="cl-date-col">
-        <span class="cl-date">Mar 2026</span>
-        <span class="cl-project-badge badge-pms">PMS</span>
-      </div>
-      <div class="cl-body">
-        <div class="cl-title">v1.0 — initial release <span class="cl-type type-init">init</span></div>
-        <div class="cl-desc">
-          First working version of the property management system. Unit tracking, basic dispatch, localStorage persistence.
-        </div>
-      </div>
-    </div>
-
+    <div id="cl-container"><div class="loading">loading…</div></div>
   </div>
 
-  <!-- ── STATUS ── -->
+  <!-- ── STATUS — ładowane z Supabase ── -->
   <div class="tab-panel" id="tab-status">
-    <div class="status-grid">
-
-      <div class="status-card">
-        <div class="sc-header">
-          <span class="sc-name">PMS</span>
-          <span class="sc-pct">75%</span>
-        </div>
-        <div class="sc-bar-wrap"><div class="sc-bar" style="width:75%"></div></div>
-        <div class="sc-tasks">
-          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Core dispatch system</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Vehicle management</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Multi-profile support</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Action history log</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-wip">…</div><span class="sc-task-text wip">Live sync between clients</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Notification system</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Export to PDF/CSV</span></div>
-        </div>
-        <div class="sc-footer">
-          <span><span class="sc-status-dot dot-active"></span>active development</span>
-          <span>last update: Sep 2026</span>
-        </div>
-      </div>
-
-      <div class="status-card">
-        <div class="sc-header">
-          <span class="sc-name">Project: Czech Republic</span>
-          <span class="sc-pct">30%</span>
-        </div>
-        <div class="sc-bar-wrap"><div class="sc-bar" style="width:30%"></div></div>
-        <div class="sc-tasks">
-          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Map boundaries & scale</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Base terrain mesh</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-done">✓</div><span class="sc-task-text done">Prague center blocked out</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-wip">…</div><span class="sc-task-text wip">D1 highway corridor</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-wip">…</div><span class="sc-task-text wip">Terrain detailing</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Brno city layout</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Vehicle spawn points</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Lighting & atmosphere</span></div>
-          <div class="sc-task"><div class="sc-task-icon icon-todo">○</div><span class="sc-task-text">Optimization pass</span></div>
-        </div>
-        <div class="sc-footer">
-          <span><span class="sc-status-dot dot-active"></span>active development</span>
-          <span>last update: Oct 2026</span>
-        </div>
-      </div>
-
+    <div class="status-grid" id="status-container">
+      <div class="loading">loading…</div>
     </div>
   </div>
 
-  <!-- ── SHOWCASE ── -->
+  <!-- ── SHOWCASE — statyczny ── -->
   <div class="tab-panel" id="tab-showcase">
     <div class="showcase-grid">
-
       <div class="sh-card">
         <div class="sh-thumb">
-          <!-- Replace with: <img class="sh-img" src="screenshot1.jpg" alt="…"> -->
           <div class="sh-thumb-placeholder">
             <div class="sh-thumb-icon">🗺</div>
             <div class="sh-thumb-label">screenshot_01.jpg</div>
@@ -540,13 +329,9 @@ body::after {
         <div class="sh-meta">
           <div class="sh-title">Czech Republic — Prague overview</div>
           <div class="sh-desc">Aerial view of the blocked-out city centre. Old Town Square area.</div>
-          <div class="sh-tag-row">
-            <span class="sh-tag">Czech Republic</span>
-            <span class="sh-tag">terrain</span>
-          </div>
+          <div class="sh-tag-row"><span class="sh-tag">Czech Republic</span><span class="sh-tag">terrain</span></div>
         </div>
       </div>
-
       <div class="sh-card">
         <div class="sh-thumb">
           <div class="sh-thumb-placeholder">
@@ -557,13 +342,9 @@ body::after {
         <div class="sh-meta">
           <div class="sh-title">D1 motorway — early pass</div>
           <div class="sh-desc">First segment of the D1 corridor. Road mesh and basic surface materials in place.</div>
-          <div class="sh-tag-row">
-            <span class="sh-tag">Czech Republic</span>
-            <span class="sh-tag">roads</span>
-          </div>
+          <div class="sh-tag-row"><span class="sh-tag">Czech Republic</span><span class="sh-tag">roads</span></div>
         </div>
       </div>
-
       <div class="sh-card">
         <div class="sh-thumb">
           <div class="sh-thumb-placeholder">
@@ -574,111 +355,33 @@ body::after {
         <div class="sh-meta">
           <div class="sh-title">PMS — dispatch board</div>
           <div class="sh-desc">Live unit tracking interface. Shows active, dispatched and unavailable units.</div>
-          <div class="sh-tag-row">
-            <span class="sh-tag">PMS</span>
-            <span class="sh-tag">UI</span>
-          </div>
+          <div class="sh-tag-row"><span class="sh-tag">PMS</span><span class="sh-tag">UI</span></div>
         </div>
       </div>
-
-      <!-- Add more: copy the .sh-card block above and swap content -->
       <div class="sh-add-hint">
         <span style="font-size:20px;opacity:0.3">+</span>
         drop screenshots here<br>
         <span style="font-size:10px;margin-top:4px;opacity:0.5">replace placeholder divs with &lt;img&gt; tags</span>
       </div>
-
     </div>
   </div>
 
-  <!-- ── ROADMAP ── -->
+  <!-- ── ROADMAP — ładowane z Supabase ── -->
   <div class="tab-panel" id="tab-roadmap">
-    <div class="roadmap-cols">
-
-      <div class="rm-col col-todo">
-        <div class="rm-col-header"><span class="rm-col-dot"></span> planned</div>
-        <div class="rm-cards">
-          <div class="rm-card">
-            <div class="rm-card-title">Brno city layout</div>
-            <div class="rm-card-proj">Czech Republic</div>
-            <div class="rm-card-desc">Second major city. Street grid, district shapes, key landmarks.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Vehicle spawn system</div>
-            <div class="rm-card-proj">Czech Republic</div>
-            <div class="rm-card-desc">Designated spawn points for emergency and civilian vehicles.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Notification system</div>
-            <div class="rm-card-proj">PMS</div>
-            <div class="rm-card-desc">In-app alerts for unit status changes and new dispatches.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Export to CSV / PDF</div>
-            <div class="rm-card-proj">PMS</div>
-            <div class="rm-card-desc">Download shift reports and action logs for external review.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Atmosphere & lighting pass</div>
-            <div class="rm-card-proj">Czech Republic</div>
-            <div class="rm-card-desc">Day/night cycle tuning, fog, ambient occlusion bake.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="rm-col col-doing">
-        <div class="rm-col-header"><span class="rm-col-dot"></span> in progress</div>
-        <div class="rm-cards">
-          <div class="rm-card">
-            <div class="rm-card-title">D1 highway corridor</div>
-            <div class="rm-card-proj">Czech Republic</div>
-            <div class="rm-card-desc">Prague–Brno motorway. Road mesh laid, terrain sculpting ongoing.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Terrain detailing</div>
-            <div class="rm-card-proj">Czech Republic</div>
-            <div class="rm-card-desc">Foliage, elevation micro-detail, riverbank shaping.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Live client sync</div>
-            <div class="rm-card-proj">PMS</div>
-            <div class="rm-card-desc">Real-time unit state sync between multiple dispatcher windows.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="rm-col col-done-col">
-        <div class="rm-col-header"><span class="rm-col-dot"></span> shipped</div>
-        <div class="rm-cards">
-          <div class="rm-card">
-            <div class="rm-card-title">PMS v2 rewrite</div>
-            <div class="rm-card-proj">PMS</div>
-            <div class="rm-card-desc">Full UI overhaul, multi-profile, action history.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Vehicle import system</div>
-            <div class="rm-card-proj">PMS</div>
-            <div class="rm-card-desc">Redesigned import flow with duplicate detection.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Prague city centre</div>
-            <div class="rm-card-proj">Czech Republic</div>
-            <div class="rm-card-desc">Old Town and New Town district volumes placed.</div>
-          </div>
-          <div class="rm-card">
-            <div class="rm-card-title">Base terrain mesh</div>
-            <div class="rm-card-proj">Czech Republic</div>
-            <div class="rm-card-desc">Country-level terrain generated from reference data.</div>
-          </div>
-        </div>
-      </div>
-
+    <div class="roadmap-cols" id="roadmap-container">
+      <div class="loading">loading…</div>
     </div>
   </div>
 
 </div><!-- /page -->
 
 <script>
+/* ── SUPABASE ── */
+const SUPABASE_URL = 'https://xhcnietczjdggwakqtip.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY25pZXRjempkZ2d3YWtxdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NzU2OTEsImV4cCI6MjEwODM1MTY5MX0.YeCJs2U0iE9MPII6tL5qdalhzxZAtjFU8DGKoIWIi38';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 /* ── CLOCK ── */
 (function() {
   const el = document.getElementById('sb-time');
@@ -697,11 +400,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    // animate progress bars when switching to status tab
     if (btn.dataset.tab === 'status') {
       document.querySelectorAll('.sc-bar').forEach(bar => {
-        const w = bar.style.width;
-        bar.style.width = '0';
+        const w = bar.style.width; bar.style.width = '0';
         requestAnimationFrame(() => { bar.style.width = w; });
       });
     }
@@ -710,19 +411,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 /* ── MATRIX BG ── */
 (function() {
-  const c   = document.getElementById('matrix-bg');
+  const c = document.getElementById('matrix-bg');
   const ctx = c.getContext('2d');
-  const CH  = 'アイウエオカキクケコ0123456789ABCDEF:./|><-_=+';
-  const FS  = 14;
+  const CH = 'アイウエオカキクケコ0123456789ABCDEF:./|><-_=+';
+  const FS = 14;
   let cols, drops;
   function resize() {
-    c.width  = window.innerWidth;
-    c.height = window.innerHeight;
+    c.width = window.innerWidth; c.height = window.innerHeight;
     cols  = Math.floor(c.width / FS);
     drops = Array.from({length: cols}, () => Math.random() * -60);
   }
-  resize();
-  window.addEventListener('resize', resize);
+  resize(); window.addEventListener('resize', resize);
   setInterval(() => {
     ctx.fillStyle = 'rgba(5,4,0,0.04)';
     ctx.fillRect(0, 0, c.width, c.height);
@@ -737,6 +436,149 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     }
   }, 55);
 })();
+
+/* ── HELPERS ── */
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function projectBadgeClass(project) {
+  if (project === 'PMS') return 'badge-pms';
+  if (project.toLowerCase().includes('czech')) return 'badge-cz';
+  return 'badge-general';
+}
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${mo[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* ── CHANGELOG ── */
+async function loadChangelog() {
+  const { data, error } = await db
+    .from('changelog').select('*')
+    .order('date', { ascending: false });
+
+  if (error) {
+    document.getElementById('cl-container').innerHTML =
+      `<div class="err">Błąd ładowania: ${esc(error.message)}</div>`;
+    return;
+  }
+  if (!data.length) {
+    document.getElementById('cl-container').innerHTML = '<div class="empty">brak wpisów.</div>';
+    return;
+  }
+
+  document.getElementById('cl-container').innerHTML = data.map(c => {
+    const bullets = Array.isArray(c.bullets) && c.bullets.length
+      ? `<ul>${c.bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : '';
+    return `<div class="cl-entry">
+      <div class="cl-date-col">
+        <span class="cl-date">${formatDate(c.date)}</span>
+        <span class="cl-project-badge ${projectBadgeClass(c.project)}">${esc(c.project)}</span>
+      </div>
+      <div class="cl-body">
+        <div class="cl-title">${esc(c.title)} <span class="cl-type type-${esc(c.type)}">${esc(c.type)}</span></div>
+        <div class="cl-desc">${c.description ? esc(c.description) : ''}${bullets}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── STATUS ── */
+async function loadStatus() {
+  const { data, error } = await db
+    .from('status_tasks').select('*')
+    .order('sort_order');
+
+  if (error) {
+    document.getElementById('status-container').innerHTML =
+      `<div class="err">Błąd ładowania: ${esc(error.message)}</div>`;
+    return;
+  }
+
+  // Group by project
+  const projects = {};
+  data.forEach(t => {
+    if (!projects[t.project]) projects[t.project] = [];
+    projects[t.project].push(t);
+  });
+
+  document.getElementById('status-container').innerHTML = Object.entries(projects).map(([proj, tasks]) => {
+    const done  = tasks.filter(t => t.done).length;
+    const wip   = tasks.filter(t => !t.done && t.in_progress).length;
+    const total = tasks.length;
+    const pct   = total ? Math.round((done / total) * 100) : 0;
+
+    const taskRows = tasks.map(t => {
+      const cls  = t.done ? 'done' : t.in_progress ? 'wip' : 'todo';
+      const icon = t.done ? 'icon-done' : t.in_progress ? 'icon-wip' : 'icon-todo';
+      const sym  = t.done ? '✓' : t.in_progress ? '…' : '○';
+      return `<div class="sc-task">
+        <div class="sc-task-icon ${icon}">${sym}</div>
+        <span class="sc-task-text ${t.done ? 'done' : t.in_progress ? 'wip' : ''}">${esc(t.title)}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="status-card">
+      <div class="sc-header">
+        <span class="sc-name">${esc(proj)}</span>
+        <span class="sc-pct">${pct}%</span>
+      </div>
+      <div class="sc-bar-wrap"><div class="sc-bar" style="width:${pct}%"></div></div>
+      <div class="sc-tasks">${taskRows}</div>
+      <div class="sc-footer">
+        <span><span class="sc-status-dot dot-active"></span>active development</span>
+        <span>${done}/${total} done</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── ROADMAP ── */
+async function loadRoadmap() {
+  const { data, error } = await db
+    .from('roadmap').select('*')
+    .order('sort_order');
+
+  if (error) {
+    document.getElementById('roadmap-container').innerHTML =
+      `<div class="err">Błąd ładowania: ${esc(error.message)}</div>`;
+    return;
+  }
+
+  const planned = data.filter(r => r.stage === 'planned');
+  const doing   = data.filter(r => r.stage === 'doing');
+  const done    = data.filter(r => r.stage === 'done');
+
+  function cards(items) {
+    if (!items.length) return '<div class="empty" style="padding:12px 0;font-size:11px">brak</div>';
+    return items.map(r => `<div class="rm-card">
+      <div class="rm-card-title">${esc(r.title)}</div>
+      <div class="rm-card-proj">${esc(r.project)}</div>
+      ${r.description ? `<div class="rm-card-desc">${esc(r.description)}</div>` : ''}
+    </div>`).join('');
+  }
+
+  document.getElementById('roadmap-container').innerHTML = `
+    <div class="rm-col col-todo">
+      <div class="rm-col-header"><span class="rm-col-dot"></span> planned</div>
+      <div class="rm-cards">${cards(planned)}</div>
+    </div>
+    <div class="rm-col col-doing">
+      <div class="rm-col-header"><span class="rm-col-dot"></span> in progress</div>
+      <div class="rm-cards">${cards(doing)}</div>
+    </div>
+    <div class="rm-col col-done-col">
+      <div class="rm-col-header"><span class="rm-col-dot"></span> shipped</div>
+      <div class="rm-cards">${cards(done)}</div>
+    </div>`;
+}
+
+/* ── INIT ── */
+loadChangelog();
+loadStatus();
+loadRoadmap();
 </script>
 </body>
 </html>
